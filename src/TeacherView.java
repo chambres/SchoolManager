@@ -69,11 +69,7 @@ public class TeacherView extends JPanel {
         }
         catch(Exception e){ System.out.println(e);}
 
-        int rs = performUpdate("""
-        create table teachers (ID int auto_increment primary key,
-        FirstName varchar(500) NOT null,
-        LastName varchar(500) NOT null
-        );""");
+        int rs = performUpdate("create table teachers (ID int auto_increment primary key,\nFirstName varchar(500) NOT null,\nLastName varchar(500) NOT null\n);");
         
 
         performUpdate("DELETE FROM teachers;");
@@ -281,9 +277,7 @@ public class TeacherView extends JPanel {
 
         try{
             
-            performUpdate(String.format("""
-                insert into teachers(FirstName, LastName)
-                values ('%s', '%s');""", fname, lname));
+            performUpdate(String.format("insert into teachers(FirstName, LastName)\nvalues ('%s', '%s');", fname, lname));
             
             
             ResultSet b = performQuery("select * from teachers");
