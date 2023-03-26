@@ -131,8 +131,11 @@ public class SectionView extends JPanel {
     JComboBox<String> courseSelection;
     JComboBox<String> studentSelection;
 
-    
-    
+
+    JPanel rightPanel = new JPanel(null);
+
+    int offset = 30;
+    int labelHeight = 20; // set the height of the labels
 
     void Start(){
         JPanel panel = new JPanel(new BorderLayout());
@@ -150,7 +153,7 @@ public class SectionView extends JPanel {
         centerPanel.setMaximumSize(new Dimension(450, 500));
         centerPanel.add(scrollPane, BorderLayout.WEST);
 
-        JPanel rightPanel = new JPanel(null);        
+         
         rightPanel.setPreferredSize(new Dimension(400, 500));
         rightPanel.setMaximumSize(new Dimension(400, 500));
         rightPanel.setBackground(Color.white);
@@ -163,7 +166,7 @@ public class SectionView extends JPanel {
 
         int labelX = 40; // set the X position of the labels
         int labelY = 30; // set the Y position of the first label
-        int labelHeight = 20; // set the height of the labels
+
         int labelGap = 10; // set the vertical gap between the labels
 
         JLabel[] labels = {CourseNameLabel, TypeLabel, idLabel}; // store the labels in an array
@@ -215,7 +218,7 @@ public class SectionView extends JPanel {
             labelY += labelHeight + labelGap; // update the Y position for the next text field
             rightPanel.add(field);
         }
-        int offset = 30;
+
         int yOff = 20;
         saveChanges = new JButton("Save");
         saveChanges.setBounds(180-60+60-offset, 200-50 + yOff, 100, 20);
@@ -259,6 +262,7 @@ public class SectionView extends JPanel {
         studentSelection = new JComboBox<String>(students.toArray(new String[students.size()]));
         studentSelection.setModel(new DefaultComboBoxModel<String>(students.toArray(new String[students.size()])));
         studentSelection.setBounds(180-60+60-offset-60, 200+20+70+70+80, 120, labelHeight);
+        studentSelection.setName("studentSelection");
         rightPanel.add(studentSelection);
 
         JButton test2 = new JButton("Add Student");
@@ -302,6 +306,10 @@ public class SectionView extends JPanel {
     System.out.println(table.getModel());
     
     rightPanel.add(table);
+
+
+    
+
 //==================================================================================================
 
 
@@ -312,8 +320,31 @@ public class SectionView extends JPanel {
     ArrayList<String> selectedStudents = new ArrayList<String>();
 
     JTable table;
-    
-    JPanel rightPanel;
+
+    void resetStudentDropdown(){
+        ResultSet student = performQuery("Select * from students");
+        students.clear();
+        try{
+        while(student.next()) {
+            students.add(student.getString("FirstName") + " " + student.getString("LastName"));
+        }
+        }
+        catch(Exception e){ System.out.println(e);}
+        Component[] componentList = rightPanel.getComponents();
+        for(int i = 0; i < componentList.length; i++){
+            //get name 
+            String name = componentList[i].getName();
+            if(name == "studentSelection"){
+                rightPanel.remove(componentList[i]);
+            }
+        }
+
+        studentSelection = new JComboBox<String>(students.toArray(new String[students.size()]));
+        studentSelection.setModel(new DefaultComboBoxModel<String>(students.toArray(new String[students.size()])));
+        studentSelection.setBounds(180-60+60-offset-60, 200+20+70+70+80, 120, labelHeight);
+        studentSelection.setName("studentSelection");
+        rightPanel.add(studentSelection);
+    }
 
     ActionListener addAStudentListener(){
         return new ActionListener(){

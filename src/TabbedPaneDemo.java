@@ -55,6 +55,9 @@ public class TabbedPaneDemo extends JPanel {
                 int index = tabbedPane.getSelectedIndex();
                 System.out.println("Tab " + (index+1) + " opened.");
                 sectionView.updateTable();
+
+
+                sectionView.resetStudentDropdown();
                 // Perform your desired function here
             }
         });
