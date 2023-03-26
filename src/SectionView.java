@@ -75,11 +75,7 @@ public class SectionView extends JPanel {
         }
         catch(Exception e){ System.out.println(e);}
 
-        int rs = performUpdate("""
-        create table courses (ID int auto_increment primary key,
-        CourseName varchar(500) NOT null,
-        Type varchar(500) NOT null
-        );""");
+        int rs = performUpdate("create table courses (ID int auto_increment primary key,\nCourseName varchar(500) NOT null,\nType varchar(500) NOT null\n);");
         
 
         System.out.println(rs);
@@ -437,9 +433,7 @@ public class SectionView extends JPanel {
 
         try{
             
-            performUpdate(String.format("""
-                insert into courses(CourseName, Type)
-                values ('%s', '%s');""", fname, lname));
+            performUpdate(String.format("insert into courses(CourseName, Type)\nvalues ('%s', '%s');", fname, lname));
             
             
             ResultSet b = performQuery("select * from courses");

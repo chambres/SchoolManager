@@ -69,11 +69,13 @@ public class CourseView extends JPanel {
         }
         catch(Exception e){ System.out.println(e);}
 
-        int rs = performUpdate("""
-        create table courses (ID int auto_increment primary key,
-        CourseName varchar(500) NOT null,
-        Type varchar(500) NOT null
-        );""");
+        int rs = performUpdate(
+        "create table courses (ID int auto_increment primary key," + "\n" +
+        "CourseName varchar(500) NOT null," + "\n" + 
+        "Type varchar(500) NOT null" + "\n" + 
+        ");"
+        );
+
         
 
         performUpdate("DELETE FROM courses;");
@@ -281,10 +283,9 @@ public class CourseView extends JPanel {
 
         try{
             
-            performUpdate(String.format("""
-                insert into courses(CourseName, Type)
-                values ('%s', '%s');""", fname, lname));
-            
+            performUpdate(String.format(
+                "insert into courses(CourseName, Type)" +
+                " values ('%s', '%s');" , fname, lname));
             
             ResultSet b = performQuery("select * from courses");
             while(b.next()){
