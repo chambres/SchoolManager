@@ -18,19 +18,15 @@ import javax.swing.table.DefaultTableModel;
 import java.util.Vector;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
-
+import javax.swing.table.TableModel;
+import javax.swing.table.TableRowSorter;
 
 
 public class SectionView extends JPanel {
     Connection con;
 
-
-    
-    
-
-
     JTextField CourseNameField = new JTextField();
-    JTextField TypeField = new JTextField();
+    JTextField TeacherField = new JTextField();
     JTextField idField = new JTextField();
 
     JButton submit;
@@ -44,7 +40,7 @@ public class SectionView extends JPanel {
             System.out.println("Button clicked");
             ContactButton tmp = (ContactButton) e.getSource();
             CourseNameField.setText(tmp.fname);
-            TypeField.setText(tmp.lname);
+            TeacherField.setText(tmp.lname);
             
             saveChanges.setEnabled(true);
             deleteContact.setEnabled(true);
@@ -67,11 +63,9 @@ public class SectionView extends JPanel {
     private JPanel buttonPanel = new JPanel(new GridLayout(0, 1)); // 1 column grid
     public SectionView() {
 
-        
-
         try{
         Class.forName("com.mysql.jdbc.Driver");
-        con= DriverManager.getConnection("jdbc:mysql://localhost:3306/p2","root","password");       
+        con= DriverManager.getConnection("jdbc:mysql://localhost:3306/p2","root","password");
         }
         catch(Exception e){ System.out.println(e);}
 
@@ -123,11 +117,9 @@ public class SectionView extends JPanel {
     ArrayList<String> teachers = new ArrayList<>();
     ArrayList<String> students = new ArrayList<>();
 
-    JComboBox<String> teacherSelection;
-    JComboBox<String> courseSelection;
-    JComboBox<String> studentSelection;
-
-
+    JComboBox<Item> teacherSelection;
+    JComboBox<Item> courseSelection;
+    JComboBox<Item> studentSelection;
     JPanel rightPanel = new JPanel(null);
 
     int offset = 30;
@@ -149,7 +141,7 @@ public class SectionView extends JPanel {
         centerPanel.setMaximumSize(new Dimension(450, 500));
         centerPanel.add(scrollPane, BorderLayout.WEST);
 
-         
+
         rightPanel.setPreferredSize(new Dimension(400, 500));
         rightPanel.setMaximumSize(new Dimension(400, 500));
         rightPanel.setBackground(Color.white);
@@ -178,37 +170,36 @@ public class SectionView extends JPanel {
 
 
         ResultSet courses = performQuery("Select * from courses");
+        courseSelection = new JComboBox<Item>();
+        courseSelection.setBounds(labelX+100, labelY, 220, labelHeight);
         try{
         while(courses.next()) {
+            Item courseItem  = new Item(Integer.parseInt(courses.getString("ID")), courses.getString("CourseName") + " " + courses.getString("Type"));
+            courseSelection.addItem(courseItem);
             choices.add(courses.getString("CourseName"));
         }
         }
         catch(Exception e){ System.out.println(e);}
+//        courseSelection.setModel(new DefaultComboBoxModel<String>(choices.toArray(new String[choices.size()])));
 
-        
-
-
-        courseSelection = new JComboBox<String>(teachers.toArray(new String[teachers.size()]));
-        courseSelection.setModel(new DefaultComboBoxModel<String>(choices.toArray(new String[choices.size()])));
-        courseSelection.setBounds(labelX+100, labelY, 220, labelHeight);
         rightPanel.add(courseSelection);
 
         labelY += labelHeight + labelGap;
 
         ResultSet teacher = performQuery("Select * from teachers");
+        teacherSelection =  new JComboBox<Item>();
+        teacherSelection.setBounds(labelX+100, labelY, 220, labelHeight);
         try{
         while(teacher.next()) {
-            teachers.add(courses.getString("FirstName") + " " + courses.getString("LastName"));
+            teachers.add(teacher.getString("FirstName") + " " + teacher.getString("LastName"));
+            teacherSelection.addItem(new Item(Integer.parseInt(teacher.getString("ID")), teacher.getString("FirstName") + " " + teacher.getString("LastName")));
         }
         }
         catch(Exception e){ System.out.println(e);}
-
-        teacherSelection = new JComboBox<String>(teachers.toArray(new String[teachers.size()]));
-        teacherSelection.setModel(new DefaultComboBoxModel<String>(teachers.toArray(new String[teachers.size()])));
-        teacherSelection.setBounds(labelX+100, labelY, 220, labelHeight);
+//        teacherSelection.setModel(new DefaultComboBoxModel<Item>(teachers));
         rightPanel.add(teacherSelection);
 
-        JTextField[] fields = { TypeField, idField}; // store the text fields in an array
+        JTextField[] fields = { TeacherField, idField}; // store the text fields in an array
         for(JTextField field : fields) { // loop through the text fields
             field.setBounds(labelX+100, labelY, 220, labelHeight); // hardcode the position and size of the text field
             labelY += labelHeight + labelGap; // update the Y position for the next text field
@@ -248,17 +239,17 @@ public class SectionView extends JPanel {
 
         ResultSet student = performQuery("Select * from students");
         students.clear();
+        studentSelection = new JComboBox<Item>();
+        studentSelection.setBounds(180-60+60-offset-60, 200+20+70+70+80, 120, labelHeight);
+        studentSelection.setName("studentSelection");
         try{
         while(student.next()) {
             students.add(student.getString("FirstName") + " " + student.getString("LastName"));
+            studentSelection.addItem(new Item(Integer.parseInt(student.getString("ID")), student.getString("FirstName") + " " + student.getString("LastName")));
         }
         }
         catch(Exception e){ System.out.println(e);}
-
-        studentSelection = new JComboBox<String>(students.toArray(new String[students.size()]));
-        studentSelection.setModel(new DefaultComboBoxModel<String>(students.toArray(new String[students.size()])));
-        studentSelection.setBounds(180-60+60-offset-60, 200+20+70+70+80, 120, labelHeight);
-        studentSelection.setName("studentSelection");
+//        studentSelection.setModel(new DefaultComboBoxModel<String>(students.toArray(new String[students.size()])));
         rightPanel.add(studentSelection);
 
         JButton test2 = new JButton("Add Student");
@@ -293,7 +284,7 @@ public class SectionView extends JPanel {
                     String firstName = table.getValueAt(selectedRow, 0).toString();
                     int index = selectedStudents.indexOf(firstName);
                     System.out.println("Selected row: " + firstName + " ");
-                    selectedStudents.remove(index);  
+//                    selectedStudents.remove(index);
                 }
             }
         }
@@ -302,10 +293,6 @@ public class SectionView extends JPanel {
     System.out.println(table.getModel());
     
     rightPanel.add(table);
-
-
-    
-
 //==================================================================================================
 
 
@@ -320,33 +307,37 @@ public class SectionView extends JPanel {
     void resetStudentDropdown(){
         ResultSet student = performQuery("Select * from students");
         students.clear();
+        studentSelection = new JComboBox<Item>();
+//        studentSelection.setModel(new DefaultComboBoxModel<String>(students.toArray(new String[students.size()])));
+        studentSelection.setBounds(180-60+60-offset-60, 200+20+70+70+80, 120, labelHeight);
+        studentSelection.setName("studentSelection");
         try{
-        while(student.next()) {
-            students.add(student.getString("FirstName") + " " + student.getString("LastName"));
-        }
+            while(student.next()) {
+                students.add(student.getString("FirstName") + " " + student.getString("LastName"));
+                Item itemStudent = new Item(Integer.parseInt(student.getString("ID")), student.getString("LastName") + " " + student.getString("FirstName"));
+                studentSelection.addItem(itemStudent);
+            }
         }
         catch(Exception e){ System.out.println(e);}
         Component[] componentList = rightPanel.getComponents();
         for(int i = 0; i < componentList.length; i++){
-            //get name 
+            //get name
             String name = componentList[i].getName();
             if(name == "studentSelection"){
                 rightPanel.remove(componentList[i]);
             }
         }
 
-        studentSelection = new JComboBox<String>(students.toArray(new String[students.size()]));
-        studentSelection.setModel(new DefaultComboBoxModel<String>(students.toArray(new String[students.size()])));
-        studentSelection.setBounds(180-60+60-offset-60, 200+20+70+70+80, 120, labelHeight);
-        studentSelection.setName("studentSelection");
+
         rightPanel.add(studentSelection);
     }
 
     ActionListener addAStudentListener(){
         return new ActionListener(){
             public void actionPerformed(ActionEvent e){
+
                 System.out.println("Add Student");
-                String student = studentSelection.getSelectedItem().toString();
+                String student = studentSelection.getSelectedItem().toString() + " " + ((Item)studentSelection.getSelectedItem()).getId();
                 selectedStudents.add(student);
 
                 // create the table model with one column named "Students"
@@ -358,8 +349,21 @@ public class SectionView extends JPanel {
                     model.addRow(new Object[] {s});
                 }
                 DefaultTableModel model1 = (DefaultTableModel) table.getModel();
+                model1.setColumnIdentifiers(new String[]{"StudentNames"});
+
+                //Added for Sorting
+//                TableRowSorter<TableModel> sorter = new TableRowSorter<TableModel>(model1);
+//                table.setRowSorter(sorter);
+//
+//                List<RowSorter.SortKey> sortKeys = new ArrayList<>(0);
+//                sortKeys.add(new RowSorter.SortKey(0, SortOrder.ASCENDING));
+//
+//                sorter.setSortKeys(sortKeys);
+                //Added for Sorting
+
                 model1.setRowCount(0);
                 model1 = model;
+                table.setAutoCreateRowSorter(true);
                 table.setModel(model1);
             }
         };
@@ -400,7 +404,7 @@ public class SectionView extends JPanel {
             @Override
             public void actionPerformed(ActionEvent e) {
                 CourseNameField.setText("");
-                TypeField.setText("");
+                TeacherField.setText("");
             }
         };
         return a;
@@ -427,23 +431,25 @@ public class SectionView extends JPanel {
 
 
     void addButton(){
-        String fname = CourseNameField.getText();
-        String lname = TypeField.getText();
-
+        Item courseItem = ((Item) courseSelection.getSelectedItem());
+        String course = String.valueOf(courseItem.getId()) ; // CourseNameField.getText();
+        Item teacherItem = ((Item) teacherSelection.getSelectedItem());
+        String teacher = String.valueOf(teacherItem.getId()); //teacherSelection TeacherField.getText();
 
         try{
+            //tobedone
+            performUpdate(String.format("insert into sections(course_id, teacher_id)\nvalues ('%s', '%s');", course, teacher));
+            //browse through all students and modify student section in student table.
+            //If section is not there for that student add. If already there don't add
             
-            performUpdate(String.format("insert into courses(CourseName, Type)\nvalues ('%s', '%s');", fname, lname));
-            
-            
-            ResultSet b = performQuery("select * from courses");
+            ResultSet b = performQuery("select * from sections");
             while(b.next()){
-                System.out.println(b.getString("ID") + " " + b.getString("CourseName") + " " + b.getString("Type"));
+                System.out.println(b.getString("course_id") + " " + b.getString("teacher_id") );
             }
         }
         catch(Exception e){ System.out.println(e);}
 
-        ContactButton button = new ContactButton(fname, lname);
+        ContactButton button = new ContactButton(courseItem.getDescription(), teacherItem.getDescription());
 
         ActionListener b = new ActionListener() {
             @Override
@@ -451,14 +457,14 @@ public class SectionView extends JPanel {
                 System.out.println("Button clicked");
                 ContactButton tmp = (ContactButton) e.getSource();
                 CourseNameField.setText(tmp.fname);
-                TypeField.setText(tmp.lname);
+                TeacherField.setText(tmp.lname);
                 
                 saveChanges.setEnabled(true);
                 deleteContact.setEnabled(true);
                 submit.setEnabled(false);
                 clear.setEnabled(false);
 
-                ResultSet b = performQuery("SELECT id FROM courses WHERE CourseName = + '" + fname + "' AND Type = '" + lname + "';");
+                ResultSet b = performQuery("SELECT id FROM sections WHERE course_id = + '" + course + "' AND teacher_id = '" + teacher + "';");
                 try{
                     while(b.next()){
                         idField.setText(b.getString("ID"));
@@ -502,15 +508,11 @@ public class SectionView extends JPanel {
     
     ActionListener saveButtonListener(){
         JTextField fname = CourseNameField;
-        JTextField lname = TypeField;
+        JTextField lname = TeacherField;
 
     
         return new ActionListener() {
             public void actionPerformed(ActionEvent e) {
-    
-                
-                
-    
     
                 String CourseName = fname.getText();
                 String Type = lname.getText();
@@ -537,7 +539,7 @@ public class SectionView extends JPanel {
                         System.out.println("Button clicked");
                         ContactButton tmp = (ContactButton) e.getSource();
                         CourseNameField.setText(tmp.fname);
-                        TypeField.setText(tmp.lname);
+                        TeacherField.setText(tmp.lname);
                         
                         saveChanges.setEnabled(true);
                         deleteContact.setEnabled(true);
@@ -564,15 +566,18 @@ public class SectionView extends JPanel {
     
        ActionListener submitButtonListener(){
         JTextField fname = CourseNameField;
-        JTextField lname = TypeField;
+        JTextField lname = TeacherField;
 
         return new ActionListener() {
             public void actionPerformed(ActionEvent e) {
-                String CourseName = fname.getText();
-                String Type = lname.getText();
-                if(CourseName == null || CourseName.equals("") || Type == null || Type.equals("")){
+                Item courseItem = ((Item) courseSelection.getSelectedItem());
+                String CourseName = String.valueOf(courseItem.getId()) ; // CourseNameField.getText();
+                Item teacherItem = ((Item) teacherSelection.getSelectedItem());
+                String Teacher = String.valueOf(teacherItem.getId()); //teacherSelection TeacherField.getText();
+
+                if(CourseName == null || CourseName.equals("") || Teacher == null || Teacher.equals("")){
                     //show dialog box
-                    JOptionPane.showMessageDialog(null, "Please enter a first and last name");
+                    JOptionPane.showMessageDialog(null, "Please choose teacher and course");
                     return;
                 }
 
@@ -589,7 +594,7 @@ public class SectionView extends JPanel {
     
        ActionListener deleteButtonListener(){
         JTextField fname = CourseNameField;
-        JTextField lname = TypeField;
+        JTextField lname = TeacherField;
 
     
         return new ActionListener() {
@@ -673,38 +678,62 @@ public class SectionView extends JPanel {
         ResultSet courses = performQuery("Select * from courses");
 
         choices.clear();
+        courseSelection.removeAllItems();
         try{
         while(courses.next()) {
             choices.add(courses.getString("CourseName"));
+            courseSelection.addItem(new Item(Integer.parseInt(courses.getString("ID")), courses.getString("CourseName") + " " + courses.getString("Type")));
         }
         }
         catch(Exception e){ System.out.println(e);}
 
         ResultSet teacher = performQuery("Select * from teachers");
         teachers.clear();
+        teacherSelection.removeAllItems();
         try{
         while(teacher.next()) {
             teachers.add(teacher.getString("FirstName") + " " + teacher.getString("LastName"));
+            teacherSelection.addItem(new Item(Integer.parseInt(teacher.getString("ID")), teacher.getString("FirstName") + " " + teacher.getString("LastName")));
+
         }
         }
         catch(Exception e){ System.out.println(e);}
 
-        courseSelection.removeAllItems();
-
-        // Add the updated items from the ArrayList to the combo box's model
-        for (String option : choices) {
-            courseSelection.addItem(option);
+        ResultSet student = performQuery("Select * from students");
+        students.clear();
+        studentSelection.removeAllItems();
+        try{
+            while(student.next()) {
+                Item itemStudent = new Item(Integer.parseInt(student.getString("ID")), student.getString("LastName") + " " + student.getString("FirstName"));
+                studentSelection.addItem(itemStudent);
+            }
         }
+        catch(Exception e){ System.out.println(e);}
 
-        teacherSelection.removeAllItems();
-        System.out.println(teacherSelection.getItemCount());
-
-        // Add the updated items from the ArrayList to the combo box's model
-        for (String option : teachers) {
-            teacherSelection.addItem(option);
-        }
-        
-        
+//        courseSelection.removeAllItems();
+//
+//        // Add the updated items from the ArrayList to the combo box's model
+//        for (String option : choices) {
+//            courseSelection.addItem(option);
+//        }
+//
+//        teacherSelection.removeAllItems();
+//        System.out.println(teacherSelection.getItemCount());
+//
+//        // Add the updated items from the ArrayList to the combo box's model
+//        for (Item option : teachers) {
+//
+//            teacherSelection.addItem(option);
+//        }
+//
+//        studentSelection.removeAllItems();
+//        System.out.println(studentSelection.getItemCount());
+//
+//        // Add the updated items from the ArrayList to the combo box's model
+//        for (String option : students) {
+//            studentSelection.addItem(option);
+//        }
+//
     }
 }
 //In this version of the AddNewProject2 class, I changed the layout manager of the centerPanel to a BorderLayout, and then added the scrollPane to the BorderLayout.WEST position of the centerPanel. This will cause the scrollPane and its contents to be locked to the left side of the centerPanel.
