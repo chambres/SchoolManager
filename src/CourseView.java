@@ -65,7 +65,7 @@ public class CourseView extends JPanel {
 
         try{
         Class.forName("com.mysql.jdbc.Driver");
-        con= DriverManager.getConnection("jdbc:mysql://localhost:3306/p2","root","password");       
+        con= DriverManager.getConnection("jdbc:mysql://localhost:3306/p2","root","password");
         }
         catch(Exception e){ System.out.println(e);}
 
@@ -359,15 +359,11 @@ public class CourseView extends JPanel {
         return new ActionListener() {
             public void actionPerformed(ActionEvent e) {
     
-                
-                
-    
-    
                 String CourseName = fname.getText();
                 String Type = lname.getText();
                 if(CourseName == null || CourseName.equals("") || Type == null || Type.equals("")){
                     //show dialog box
-                    JOptionPane.showMessageDialog(null, "Please enter a first and last name");
+                    JOptionPane.showMessageDialog(null, "Please enter a course name and type");
                     return;
                 }
     
@@ -423,7 +419,7 @@ public class CourseView extends JPanel {
                 String Type = lname.getText();
                 if(CourseName == null || CourseName.equals("") || Type == null || Type.equals("")){
                     //show dialog box
-                    JOptionPane.showMessageDialog(null, "Please enter a first and last name");
+                    JOptionPane.showMessageDialog(null, "Please enter a course Name and type");
                     return;
                 }
 

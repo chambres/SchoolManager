@@ -1,14 +1,9 @@
 
-import javax.swing.JTabbedPane;
-import javax.swing.ImageIcon;
-import javax.swing.JPanel;
-import javax.swing.JFrame;
-import javax.swing.JComponent;
-import javax.swing.SwingUtilities;
-import javax.swing.UIManager;
+import javax.swing.*;
 import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.awt.GridLayout;
+import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
@@ -23,7 +18,7 @@ public class TabbedPaneDemo extends JPanel {
     public TabbedPaneDemo() {
         super(new GridLayout(1, 1));
 
-        
+
         
         JTabbedPane tabbedPane = new JTabbedPane();
         ImageIcon icon = createImageIcon("images/middle.gif");
@@ -55,8 +50,6 @@ public class TabbedPaneDemo extends JPanel {
                 int index = tabbedPane.getSelectedIndex();
                 System.out.println("Tab " + (index+1) + " opened.");
                 sectionView.updateTable();
-
-
                 sectionView.resetStudentDropdown();
                 // Perform your desired function here
             }
@@ -116,7 +109,24 @@ public class TabbedPaneDemo extends JPanel {
         //Create and set up the window.
         JFrame frame = new JFrame("TabbedPaneDemo");
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        
+
+        JMenuBar menuBar = new JMenuBar();
+        JMenu menu = new JMenu("File");
+        JMenuItem exportItem = new JMenuItem("Export Data");
+
+        JMenuItem importItem = new JMenuItem("Import Data");
+        JMenuItem purgeItem = new JMenuItem("Purge");
+        JMenuItem exitItem = new JMenuItem("Exit");
+
+//        menuItem.addActionListener((ActionListener) this);
+        menu.add(exportItem);
+        menu.add(importItem);
+        menu.add(purgeItem);
+        menu.add(exitItem);
+        menuBar.add(menu);
+
+        frame.setJMenuBar(menuBar);
+
         //Add content to the window.
         frame.add(new TabbedPaneDemo(), BorderLayout.CENTER);
         
