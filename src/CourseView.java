@@ -276,7 +276,7 @@ public class CourseView extends JPanel {
 
 
 
-    void addButton(){
+    public void addButton(){
         String fname = CourseNameField.getText();
         String lname = TypeField.getText();
 
@@ -304,6 +304,54 @@ public class CourseView extends JPanel {
                 CourseNameField.setText(tmp.fname);
                 TypeField.setText(tmp.lname);
                 
+                saveChanges.setEnabled(true);
+                deleteContact.setEnabled(true);
+                submit.setEnabled(false);
+                clear.setEnabled(false);
+
+                ResultSet b = performQuery("SELECT id FROM courses WHERE CourseName = + '" + fname + "' AND Type = '" + lname + "';");
+                try{
+                    while(b.next()){
+                        idField.setText(b.getString("ID"));
+                    }
+                }
+                catch(Exception e1){System.out.println(e1);}
+
+                current = tmp;
+            }
+        };
+        button.addActionListener(b);
+        contactList.add(button);
+        reloadButtons();
+    }
+
+    public void addButton(String fname, String lname){
+
+
+
+        try{
+
+            performUpdate(String.format(
+                    "insert into courses(CourseName, Type)" +
+                            " values ('%s', '%s');" , fname, lname));
+
+            ResultSet b = performQuery("select * from courses");
+            while(b.next()){
+                System.out.println(b.getString("ID") + " " + b.getString("CourseName") + " " + b.getString("Type"));
+            }
+        }
+        catch(Exception e){ System.out.println(e);}
+
+        ContactButton button = new ContactButton(fname, lname);
+
+        ActionListener b = new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                System.out.println("Button clicked");
+                ContactButton tmp = (ContactButton) e.getSource();
+                CourseNameField.setText(tmp.fname);
+                TypeField.setText(tmp.lname);
+
                 saveChanges.setEnabled(true);
                 deleteContact.setEnabled(true);
                 submit.setEnabled(false);

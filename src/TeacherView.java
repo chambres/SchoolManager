@@ -3,8 +3,10 @@ import java.awt.Dimension;
 import java.awt.GridLayout;
 
 import javax.swing.*;
+import javax.swing.table.DefaultTableModel;
 import java.awt.*;
 import java.awt.event.*;
+import java.io.FileWriter;
 import java.util.ArrayList;
 import java.io.File;
 import java.util.List;
@@ -12,17 +14,11 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.io.IOException;
 import java.sql.*;
-
+import java.util.Vector;
 
 
 public class TeacherView extends JPanel {
     Connection con;
-
-
-    
-    
-
-
     JTextField firstNameField = new JTextField();
     JTextField lastNameField = new JTextField();
     JTextField idField = new JTextField();
@@ -31,6 +27,9 @@ public class TeacherView extends JPanel {
     JButton clear;
     JButton saveChanges;
     JButton deleteContact;
+    JTable tableCourses;
+    String[] columnNamesForCourses = { "SectionID", "Course" };
+    DefaultTableModel modelCourses;
 
     ActionListener b = new ActionListener() {
         @Override
@@ -46,6 +45,38 @@ public class TeacherView extends JPanel {
             clear.setEnabled(false);
 
             current = tmp;
+
+            System.out.println("Select Teacher");
+
+            // create the table model with one column named "SectionID" and CourseName
+            DefaultTableModel modelCourses = new DefaultTableModel();
+            modelCourses.addColumn("SectionID");
+            modelCourses.addColumn("CourseName");
+
+            ResultSet a = performQuery("SELECT section FROM sections where teachers.ID=" + Integer.parseInt((idField.getText())));
+            try {
+                a.next();
+                String[] sections = a.getString("1").split(":");
+                for(int i=0; i<sections.length;i++) {
+                    String query = "SELECT sections.ID as SectionID, courses.CourseName as CourseName FROM sections, courses where sections.ID=" + sections[i] + " and courses.ID=sections.course_id";
+                    ResultSet courses = performQuery(query);
+                    courses.next();
+                    modelCourses.addRow(new Object[] {courses.getString("SectionID"),courses.getString("CourseName") });
+                }
+
+            } catch (SQLException ex) {
+                throw new RuntimeException(ex);
+            }
+
+            // add the student names to the table model
+
+            DefaultTableModel model1 = (DefaultTableModel) tableCourses.getModel();
+
+            model1.setColumnIdentifiers(new String[]{"SectionID", "CourseName"});
+            model1.setRowCount(0);
+            model1 = modelCourses;
+            tableCourses.setBounds(180-60+60-30-130 ,200+20+70+70+40, 360, tableCourses.getRowCount()*17);
+            tableCourses.setModel(model1);
         }
     };
 
@@ -60,8 +91,6 @@ public class TeacherView extends JPanel {
 
     private JPanel buttonPanel = new JPanel(new GridLayout(0, 1)); // 1 column grid
     public TeacherView() {
-
-        
 
         try{
         Class.forName("com.mysql.jdbc.Driver");
@@ -203,7 +232,16 @@ public class TeacherView extends JPanel {
         
 
         centerPanel.add(rightPanel, BorderLayout.EAST);
-        
+
+        // create the table with the table model
+        modelCourses = new DefaultTableModel();
+        modelCourses.addColumn("SectionID");
+        modelCourses.addColumn("CourseName");
+        tableCourses = new JTable(modelCourses);
+        tableCourses.setBackground(Color.green);
+        tableCourses.setBounds(180-60+60-offset-130 ,200+20+70+70+40, 360, tableCourses.getRowCount()*17);
+        rightPanel.add(tableCourses);
+        centerPanel.add(rightPanel, BorderLayout.EAST);
         
         add(topPanel, BorderLayout.PAGE_START);
         add(centerPanel, BorderLayout.CENTER);
@@ -268,24 +306,22 @@ public class TeacherView extends JPanel {
         return -1;
     }
 
-
-
-    void addButton(){
+    void addButton() {
         String fname = firstNameField.getText();
         String lname = lastNameField.getText();
 
+        try {
 
-        try{
-            
             performUpdate(String.format("insert into teachers(FirstName, LastName)\nvalues ('%s', '%s');", fname, lname));
-            
-            
+
+
             ResultSet b = performQuery("select * from teachers");
-            while(b.next()){
+            while (b.next()) {
                 System.out.println(b.getString("ID") + " " + b.getString("FirstName") + " " + b.getString("LastName"));
             }
+        } catch (Exception e) {
+            System.out.println(e);
         }
-        catch(Exception e){ System.out.println(e);}
 
         ContactButton button = new ContactButton(fname, lname);
 
@@ -296,26 +332,52 @@ public class TeacherView extends JPanel {
                 ContactButton tmp = (ContactButton) e.getSource();
                 firstNameField.setText(tmp.fname);
                 lastNameField.setText(tmp.lname);
-                
+
                 saveChanges.setEnabled(true);
                 deleteContact.setEnabled(true);
                 submit.setEnabled(false);
                 clear.setEnabled(false);
 
                 ResultSet b = performQuery("SELECT id FROM teachers WHERE FirstName = + '" + fname + "' AND LastName = '" + lname + "';");
-                try{
-                    while(b.next()){
+                try {
+                    while (b.next()) {
                         idField.setText(b.getString("ID"));
                     }
+                } catch (Exception e1) {
+                    System.out.println(e1);
                 }
-                catch(Exception e1){System.out.println(e1);}
 
                 current = tmp;
+
+                try{
+                    DefaultTableModel model = (DefaultTableModel) tableCourses.getModel();
+                    model.setRowCount(0);
+                    model = buildTableModel(performQuery("SELECT sections.ID, courses.CourseName FROM sections, courses where sections.teacher_id=" + Integer.parseInt((idField.getText())) + " and sections.course_id=courses.ID"));
+                    tableCourses.setModel(model);
+                    tableCourses.setBounds(180-60+60-30-130 ,200+20+70+70+40, 360, tableCourses.getRowCount()*17);
+                }
+                catch(Exception e1){System.out.println(e1);}
             }
         };
         button.addActionListener(b);
         contactList.add(button);
         reloadButtons();
+
+        System.out.println("Select Teacher");
+        // create the table model with one column named "SectionId" and CourseName
+//        modelCourses = new DefaultTableModel();
+//        modelCourses.setColumnIdentifiers(new String[]{"SectionId", "CourseName"});
+//        if (idField.getText() != null && idField.getText() != "") {
+//            ResultSet a = performQuery("SELECT sections.ID, courses.CourseName FROM sections, courses where sections.teacher_id=" + Integer.parseInt((idField.getText())) + " and sections.course_id=courses.ID");
+//
+//            tableCourses.setBackground(Color.green);
+//            tableCourses.setAutoCreateRowSorter(true);
+//            tableCourses.setModel(modelCourses);
+//            tableCourses.setBounds(180 - 60 + 60 - 30 - 130, 200 + 20 + 70 + 70 + 40, 360, tableCourses.getRowCount() * 17);
+//        }
+
+
+
     }
 
     void reloadButtons() {
@@ -341,8 +403,7 @@ public class TeacherView extends JPanel {
         // tell the panel to update its layout
         setVisible(true);
     }
-    
-    
+
     
     ActionListener saveButtonListener(){
         JTextField fname = firstNameField;
@@ -394,7 +455,8 @@ public class TeacherView extends JPanel {
                 tmp.addActionListener(b);
                 contactList.set(indexInArrayList, tmp);
                 reloadButtons();
-    
+
+
                 //turn off
                 saveChanges.setEnabled(false);
                 deleteContact.setEnabled(false);
@@ -405,7 +467,23 @@ public class TeacherView extends JPanel {
             }
             };
        }
-    
+    public static DefaultTableModel buildTableModel(ResultSet rs) throws SQLException {
+        ResultSetMetaData metaData = rs.getMetaData();
+        Vector<String> columnNames = new Vector<>();
+        int columnCount = metaData.getColumnCount();
+        for (int i = 1; i <= columnCount; i++) {
+            columnNames.add(metaData.getColumnName(i));
+        }
+        Vector<Vector<Object>> data = new Vector<>();
+        while (rs.next()) {
+            Vector<Object> row = new Vector<>();
+            for (int i = 1; i <= columnCount; i++) {
+                row.add(rs.getObject(i));
+            }
+            data.add(row);
+        }
+        return new DefaultTableModel(data, columnNames);
+    }
        ActionListener submitButtonListener(){
         JTextField fname = firstNameField;
         JTextField lname = lastNameField;
@@ -469,6 +547,22 @@ public class TeacherView extends JPanel {
            return contactList;
        }
 
+//    static void WriteTeachersDataIntoFile(String filename){
+//         FileWriter writer;
+//         try {
+//             writer = new FileWriter(filename);
+//             for(ContactButton str: geList()) {
+//                 writer.write(str.toString() + System.lineSeparator());
+//             }
+//             writer.close();
+//         } catch (IOException e) {
+//             e.printStackTrace();
+//         }
+//
+//         System.out.println("end");
+//
+//        System.exit(1);
+//    }
        static void end(){
         // FileWriter writer;
         // try {

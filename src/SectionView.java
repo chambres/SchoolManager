@@ -7,6 +7,7 @@ import java.awt.*;
 import java.awt.event.*;
 import java.util.ArrayList;
 import java.io.File;
+import java.util.Iterator;
 import java.util.List;
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -15,11 +16,8 @@ import java.sql.*;
 
 import javax.swing.JTable;
 import javax.swing.table.DefaultTableModel;
-import java.util.Vector;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
-import javax.swing.table.TableModel;
-import javax.swing.table.TableRowSorter;
 
 
 public class SectionView extends JPanel {
@@ -33,6 +31,7 @@ public class SectionView extends JPanel {
     JButton clear;
     JButton saveChanges;
     JButton deleteContact;
+    int selectedStudent;
 
     ActionListener b = new ActionListener() {
         @Override
@@ -69,11 +68,16 @@ public class SectionView extends JPanel {
         }
         catch(Exception e){ System.out.println(e);}
 
-        int rs = performUpdate("create table courses (ID int auto_increment primary key,\nCourseName varchar(500) NOT null,\nType varchar(500) NOT null\n);");
-        
+        int rs = performUpdate(
+                "create table sections (ID int auto_increment primary key," + "\n" +
+                        "course_id int NOT null," + "\n" +
+                        "teacher_id int NOT null" + "\n" +
+                        ");"
+        );
 
+        performUpdate("DELETE FROM sections;");
+        performUpdate("ALTER TABLE sections AUTO_INCREMENT = 1;");
         System.out.println(rs);
-    
         
         File f = new File("contacts.txt");
 
@@ -101,7 +105,7 @@ public class SectionView extends JPanel {
     }
 
     int getNextIncrement(){
-        ResultSet a = performQuery("SELECT COALESCE(MAX(id), 0) + 1 FROM courses;");
+        ResultSet a = performQuery("SELECT COALESCE(MAX(id), 0) + 1 FROM sections;");
         int maxID = 0;
         try{
         if(a.next()) {
@@ -253,45 +257,48 @@ public class SectionView extends JPanel {
         rightPanel.add(studentSelection);
 
         JButton test2 = new JButton("Add Student");
-        test2.setBounds(180-60+60-offset+60, 200+20+70+70+80, 120, labelHeight);
+        test2.setBounds(180-60+60-offset+60, 200+20+70+70+80, 100, labelHeight);
         test2.addActionListener(addAStudentListener());
         rightPanel.add(test2);
+
+        JButton test3 = new JButton("Remove Student");
+        test3.setBounds(180-60+60-offset+150, 200+20+70+70+80, 100, labelHeight);
+        test3.addActionListener(removeAStudentListener());
+        rightPanel.add(test3);
         
 //==================================================================================================
 
 
 
     // create the table model with one column named "Students"
-    DefaultTableModel model = new DefaultTableModel();
-    model.addColumn("Students");
+        DefaultTableModel model = new DefaultTableModel();
+        model.addColumn("Students");
 
-    // add the student names to the table model
-    for (String s : selectedStudents) {
-        model.addRow(new Object[] {s});
-    }
+        // add the student names to the table model
+        for (String s : selectedStudents) {
+            model.addRow(new Object[] {s});
+        }
 
-    // create the table with the table model
-    table = new JTable(model);
-    table.setBounds(180-60+60-offset-offset*3, 200+20+70+70+80+30, 320, 100);
+        // create the table with the table model
+        table = new JTable(model);
+        table.setBounds(180-60+60-offset-offset*3, 200+20+70+70+80+30, 320, 100);
 
-    table.getSelectionModel().addListSelectionListener(new ListSelectionListener() {
-        @Override
-        public void valueChanged(ListSelectionEvent e) {
-            if (!e.getValueIsAdjusting()) { // Make sure selection is not still changing
-                int selectedRow = table.getSelectedRow();
-                if (selectedRow >= 0) { // Make sure a row is actually selected
-                    // Do something with the selected row, e.g. get the values from the table model
-                    String firstName = table.getValueAt(selectedRow, 0).toString();
-                    int index = selectedStudents.indexOf(firstName);
-                    System.out.println("Selected row: " + firstName + " ");
+        table.getSelectionModel().addListSelectionListener(new ListSelectionListener() {
+            @Override
+            public void valueChanged(ListSelectionEvent e) {
+                if (!e.getValueIsAdjusting()) { // Make sure selection is not still changing
+                    int selectedRow = table.getSelectedRow();
+                    if (selectedRow >= 0) { // Make sure a row is actually selected
+                        // Do something with the selected row, e.g. get the values from the table model
+                        String firstName = table.getValueAt(selectedRow, 0).toString();
+                        selectedStudent = selectedStudents.indexOf(firstName);
+                        System.out.println("Selected row: " + firstName + " ");
+//                    selectedStudent = firstName.split(" ")[2];
 //                    selectedStudents.remove(index);
+                    }
                 }
             }
-        }
-    });
-
-    System.out.println(table.getModel());
-    
+        });
     rightPanel.add(table);
 //==================================================================================================
 
@@ -300,8 +307,9 @@ public class SectionView extends JPanel {
         add(centerPanel, BorderLayout.CENTER);
     }
 
-    ArrayList<String> selectedStudents = new ArrayList<String>();
 
+    ArrayList<String> selectedStudents = new ArrayList<String>();
+    ArrayList<String> studentsOfASection = new ArrayList<String>();
     JTable table;
 
     void resetStudentDropdown(){
@@ -351,15 +359,6 @@ public class SectionView extends JPanel {
                 DefaultTableModel model1 = (DefaultTableModel) table.getModel();
                 model1.setColumnIdentifiers(new String[]{"StudentNames"});
 
-                //Added for Sorting
-//                TableRowSorter<TableModel> sorter = new TableRowSorter<TableModel>(model1);
-//                table.setRowSorter(sorter);
-//
-//                List<RowSorter.SortKey> sortKeys = new ArrayList<>(0);
-//                sortKeys.add(new RowSorter.SortKey(0, SortOrder.ASCENDING));
-//
-//                sorter.setSortKeys(sortKeys);
-                //Added for Sorting
 
                 model1.setRowCount(0);
                 model1 = model;
@@ -369,6 +368,22 @@ public class SectionView extends JPanel {
         };
     }
 
+    ActionListener removeAStudentListener(){
+        return new ActionListener(){
+            public void actionPerformed(ActionEvent e){
+
+                System.out.println("Remove Student" +  table.getSelectedRow());
+                DefaultTableModel model = (DefaultTableModel) table.getModel();
+                int[] rows = table.getSelectedRows();
+                for(int i=0;i<rows.length;i++) {
+                    System.out.println(model.getValueAt(i, 0));
+                    model.removeRow(rows[i] - i);
+                    selectedStudents.remove(selectedStudent);
+                }
+
+            }
+        };
+    }
     ActionListener testListener(){
         
         return new ActionListener(){
@@ -432,19 +447,32 @@ public class SectionView extends JPanel {
 
     void addButton(){
         Item courseItem = ((Item) courseSelection.getSelectedItem());
-        String course = String.valueOf(courseItem.getId()) ; // CourseNameField.getText();
+        int course = courseItem.getId() ; // CourseNameField.getText();
         Item teacherItem = ((Item) teacherSelection.getSelectedItem());
-        String teacher = String.valueOf(teacherItem.getId()); //teacherSelection TeacherField.getText();
+        int teacher = teacherItem.getId(); //teacherSelection TeacherField.getText();
 
         try{
-            //tobedone
-            performUpdate(String.format("insert into sections(course_id, teacher_id)\nvalues ('%s', '%s');", course, teacher));
+            performUpdate(String.format("insert into sections(course_id, teacher_id, ID)\nvalues (%d, %d, %d);", course, teacher, Integer.parseInt(idField.getText()) ));
             //browse through all students and modify student section in student table.
             //If section is not there for that student add. If already there don't add
-            
-            ResultSet b = performQuery("select * from sections");
-            while(b.next()){
-                System.out.println(b.getString("course_id") + " " + b.getString("teacher_id") );
+            //akshi
+            Iterator it = selectedStudents.iterator();
+
+            // Holds true till there is single element
+            // remaining in the list
+            for(String stud: selectedStudents )
+            {
+                String currentStudent = stud.split(" ")[2];
+                ResultSet b = performQuery("select * from students where id=" + currentStudent);
+                b.next();
+                System.out.println("Section" + b.getString("Section"));
+                System.out.println("IDField" + idField.getText());
+                String section = "";
+                if(b.getString(4) == null || b.getString(4) == "")
+                    section = idField.getText();
+                else
+                    section = b.getString("Section") + ":" + idField.getText();
+                int updated = performUpdate("update students SET section='" + section + "' where id=" + currentStudent);
             }
         }
         catch(Exception e){ System.out.println(e);}
@@ -464,7 +492,7 @@ public class SectionView extends JPanel {
                 submit.setEnabled(false);
                 clear.setEnabled(false);
 
-                ResultSet b = performQuery("SELECT id FROM sections WHERE course_id = + '" + course + "' AND teacher_id = '" + teacher + "';");
+                ResultSet b = performQuery("SELECT id FROM sections WHERE course_id = " + course + " AND teacher_id = " + teacher);
                 try{
                     while(b.next()){
                         idField.setText(b.getString("ID"));
@@ -583,6 +611,8 @@ public class SectionView extends JPanel {
 
     
                 addButton();
+                //akshi
+//                saveSectionWithStudents();
                 idField.setText(Integer.toString(getNextIncrement()));
                 //clear fields
                 fname.setText("");
