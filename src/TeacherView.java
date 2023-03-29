@@ -94,7 +94,7 @@ public class TeacherView extends JPanel {
 
         try{
         Class.forName("com.mysql.jdbc.Driver");
-        con= DriverManager.getConnection("jdbc:mysql://localhost:3306/p2","root","password");
+        con= DriverManager.getConnection("jdbc:mysql://localhost:3306/p2","root","anushya");
         }
         catch(Exception e){ System.out.println(e);}
 
@@ -315,10 +315,10 @@ public class TeacherView extends JPanel {
             performUpdate(String.format("insert into teachers(FirstName, LastName)\nvalues ('%s', '%s');", fname, lname));
 
 
-            ResultSet b = performQuery("select * from teachers");
-            while (b.next()) {
-                System.out.println(b.getString("ID") + " " + b.getString("FirstName") + " " + b.getString("LastName"));
-            }
+//            ResultSet b = performQuery("select * from teachers");
+//            while (b.next()) {
+//                System.out.println(b.getString("ID") + " " + b.getString("FirstName") + " " + b.getString("LastName"));
+//            }
         } catch (Exception e) {
             System.out.println(e);
         }
@@ -433,8 +433,9 @@ public class TeacherView extends JPanel {
                 //clear fields
                 fname.setText("");
                 lname.setText("");
-                idField.setText(Integer.toString(getNextIncrement()));
-    
+//                idField.setText(Integer.toString(getNextIncrement()));
+
+                int updated = performUpdate("update teachers SET firstname='" + firstname + "', lastname ='" + lastname + "' where id=" + Integer.parseInt(idField.getText()));
                 ContactButton tmp = new ContactButton(firstname, lastname);
                 ActionListener b = new ActionListener() {
                     @Override
@@ -462,6 +463,7 @@ public class TeacherView extends JPanel {
                 deleteContact.setEnabled(false);
                 submit.setEnabled(true);
                 clear.setEnabled(true);
+                idField.setText(Integer.toString(getNextIncrement()));
     
                 current = null;
             }

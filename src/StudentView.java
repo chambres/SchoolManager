@@ -109,7 +109,7 @@ public class StudentView extends JPanel {
 
         try{
             Class.forName("com.mysql.jdbc.Driver");
-            con= DriverManager.getConnection("jdbc:mysql://localhost:3306/p2","root","password");
+            con= DriverManager.getConnection("jdbc:mysql://localhost:3306/p2","root","anushya");
         }
         catch(Exception e){ System.out.println(e);}
 
@@ -451,10 +451,6 @@ public class StudentView extends JPanel {
         return new ActionListener() {
             public void actionPerformed(ActionEvent e) {
 
-
-
-
-
                 String firstname = fname.getText();
                 String lastname = lname.getText();
                 if(firstname == null || firstname.equals("") || lastname == null || lastname.equals("")){
@@ -471,13 +467,14 @@ public class StudentView extends JPanel {
                 //clear fields
                 fname.setText("");
                 lname.setText("");
-                idField.setText(Integer.toString(getNextIncrement()));
+
+                int updated = performUpdate("update students SET firstname='" + firstname + "', lastname ='" + lastname + "' where id=" + Integer.parseInt(idField.getText()));
 
                 ContactButton tmp = new ContactButton(firstname, lastname);
                 ActionListener b = new ActionListener() {
                     @Override
                     public void actionPerformed(ActionEvent e) {
-                        System.out.println("Button clicked");
+                        System.out.println("Button clicked line 476");
                         ContactButton tmp = (ContactButton) e.getSource();
                         firstNameField.setText(tmp.fname);
                         lastNameField.setText(tmp.lname);
@@ -517,7 +514,7 @@ public class StudentView extends JPanel {
 //                        tableCourses.setModel(model1);
                     }
                 };
-                tmp.addActionListener(b);
+                 tmp.addActionListener(b);
                 contactList.set(indexInArrayList, tmp);
                 reloadButtons();
 
@@ -526,6 +523,7 @@ public class StudentView extends JPanel {
                 deleteContact.setEnabled(false);
                 submit.setEnabled(true);
                 clear.setEnabled(true);
+                idField.setText(Integer.toString(getNextIncrement()));
 
                 current = null;
             }

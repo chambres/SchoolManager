@@ -65,14 +65,14 @@ public class CourseView extends JPanel {
 
         try{
         Class.forName("com.mysql.jdbc.Driver");
-        con= DriverManager.getConnection("jdbc:mysql://localhost:3306/p2","root","password");
+        con= DriverManager.getConnection("jdbc:mysql://localhost:3306/p2","root","anushya");
         }
         catch(Exception e){ System.out.println(e);}
 
         int rs = performUpdate(
         "create table courses (ID int auto_increment primary key," + "\n" +
         "CourseName varchar(500) NOT null," + "\n" + 
-        "Type varchar(500) NOT null" + "\n" + 
+        "Type int NOT null" + "\n" +
         ");"
         );
 
@@ -285,11 +285,11 @@ public class CourseView extends JPanel {
             
             performUpdate(String.format(
                 "insert into courses(CourseName, Type)" +
-                " values ('%s', '%s');" , fname, lname));
+                " values ('%s', %s);" , fname, lname));
             
             ResultSet b = performQuery("select * from courses");
             while(b.next()){
-                System.out.println(b.getString("ID") + " " + b.getString("CourseName") + " " + b.getString("Type"));
+                System.out.println(b.getString("ID") + " " + b.getString("CourseName") + " " + b.getInt("Type"));
             }
         }
         catch(Exception e){ System.out.println(e);}
@@ -333,7 +333,7 @@ public class CourseView extends JPanel {
 
             performUpdate(String.format(
                     "insert into courses(CourseName, Type)" +
-                            " values ('%s', '%s');" , fname, lname));
+                            " values ('%s', %s);" , fname, lname));
 
             ResultSet b = performQuery("select * from courses");
             while(b.next()){
@@ -357,7 +357,7 @@ public class CourseView extends JPanel {
                 submit.setEnabled(false);
                 clear.setEnabled(false);
 
-                ResultSet b = performQuery("SELECT id FROM courses WHERE CourseName = + '" + fname + "' AND Type = '" + lname + "';");
+                ResultSet b = performQuery("SELECT id FROM courses WHERE CourseName = + '" + fname + "' AND Type = " + lname + ";");
                 try{
                     while(b.next()){
                         idField.setText(b.getString("ID"));
@@ -414,6 +414,7 @@ public class CourseView extends JPanel {
                     JOptionPane.showMessageDialog(null, "Please enter a course name and type");
                     return;
                 }
+                int updated = performUpdate("update courses SET CourseName='" + CourseName + "', Type=" + Type +  " where id=" + idField.getText());
     
                 int indexInArrayList = contactList.indexOf(current);
                 if(indexInArrayList == -1){
