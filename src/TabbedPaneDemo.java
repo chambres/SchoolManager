@@ -28,7 +28,7 @@ public class TabbedPaneDemo extends JPanel {
 
         //Added to import data
         try {
-            con= DriverManager.getConnection("jdbc:mysql://localhost:3306/p2","root","anushya");
+            con= DriverManager.getConnection("jdbc:mysql://localhost:3306/p2","root","password");
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }
@@ -404,14 +404,14 @@ public class TabbedPaneDemo extends JPanel {
     public static void WriteTeachersDataIntoFile(String filename)  {
         List<String> resultSetArray=new ArrayList<>();
         String username ="";     // Enter DB Username
-        String anushya = "";    // Enter DB anushya
+        String password = "";    // Enter DB password
         String url = "";         // Enter DB URL
 
 
         java.sql.Connection connection;
         try {
             connection = DriverManager.getConnection(
-                    "jdbc:mysql://localhost:3306/p2","root","anushya");
+                    "jdbc:mysql://localhost:3306/p2","root","password");
             fetchDataFromDatabase("select * from teachers", connection, filename);
 
         } catch (Exception e) {
@@ -423,14 +423,14 @@ public class TabbedPaneDemo extends JPanel {
     public static void WriteStudentsDataIntoFile(String filename)  {
         List<String> resultSetArray=new ArrayList<>();
         String username ="";     // Enter DB Username
-        String anushya = "";    // Enter DB anushya
+        String password = "";    // Enter DB password
         String url = "";         // Enter DB URL
 
 
         java.sql.Connection connection;
         try {
             connection = DriverManager.getConnection(
-                    "jdbc:mysql://localhost:3306/p2","root","anushya");
+                    "jdbc:mysql://localhost:3306/p2","root","password");
             fetchDataFromDatabase("select * from students", connection, filename);
 
         } catch (Exception e) {
@@ -442,14 +442,14 @@ public class TabbedPaneDemo extends JPanel {
     public static void WriteCoursesDataIntoFile(String filename)  {
         List<String> resultSetArray=new ArrayList<>();
         String username ="";     // Enter DB Username
-        String anushya = "";    // Enter DB anushya
+        String password = "";    // Enter DB password
         String url = "";         // Enter DB URL
 
 
         java.sql.Connection connection;
         try {
             connection = DriverManager.getConnection(
-                    "jdbc:mysql://localhost:3306/p2","root","anushya");
+                    "jdbc:mysql://localhost:3306/p2","root","password");
             fetchDataFromDatabase("select * from courses", connection, filename);
 
         } catch (Exception e) {
@@ -461,14 +461,14 @@ public class TabbedPaneDemo extends JPanel {
     public static void WriteSectionsDataIntoFile(String filename)  {
         List<String> resultSetArray=new ArrayList<>();
         String username ="";     // Enter DB Username
-        String anushya = "";    // Enter DB anushya
+        String password = "";    // Enter DB password
         String url = "";         // Enter DB URL
 
 
         java.sql.Connection connection;
         try {
             connection = DriverManager.getConnection(
-                    "jdbc:mysql://localhost:3306/p2","root","anushya");
+                    "jdbc:mysql://localhost:3306/p2","root","password");
             fetchDataFromDatabase("select * from sections", connection, filename);
 
         } catch (Exception e) {

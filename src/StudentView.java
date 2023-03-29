@@ -109,7 +109,7 @@ public class StudentView extends JPanel {
 
         try{
             Class.forName("com.mysql.jdbc.Driver");
-            con= DriverManager.getConnection("jdbc:mysql://localhost:3306/p2","root","anushya");
+            con= DriverManager.getConnection("jdbc:mysql://localhost:3306/p2","root","password");
         }
         catch(Exception e){ System.out.println(e);}
 

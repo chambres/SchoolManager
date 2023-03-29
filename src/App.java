@@ -5,7 +5,7 @@ public class App {
             try{
                 Class.forName("com.mysql.jdbc.Driver");
                 Connection con=DriverManager.getConnection(
-                        "jdbc:mysql://localhost:3306/p2","root","anushya");
+                        "jdbc:mysql://localhost:3306/p2","root","password");
 
                 Statement stmt=con.createStatement();
                 
