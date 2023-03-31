@@ -64,8 +64,11 @@ public class TabbedPaneDemo extends JPanel {
                 //Added to find current tab - akshi
                 selectedtab = index;
                 System.out.println("Tab " + (index+1) + " opened.");
-                sectionView.updateTable();
-                sectionView.resetStudentDropdown();
+                if(selectedtab==3) {
+                    System.out.println("Opening Section Tab " + (index+1) + " opened.");
+                    sectionView.updateTable();
+                    sectionView.resetStudentDropdown();
+                }
                 // Perform your desired function here
             }
         });
@@ -292,12 +295,13 @@ public class TabbedPaneDemo extends JPanel {
     public static void PopulateTeachersForm(String filename)  {
         try (BufferedReader br = new BufferedReader(new FileReader(filename))) {
             String line;
+            performUpdate("truncate table teachers");
             while ((line = br.readLine()) != null) {
 
                 String[] values = line.split(",");
 
                 //read text file and updating database
-                performUpdate(String.format("insert into teachers(ID, FirstName, LastName)\nvalues (%d,'%s', '%s');", Integer.parseInt(values[0]), values[1], values[2]));
+//                performUpdate(String.format("insert into teachers(ID, FirstName, LastName)\nvalues (%d,'%s', '%s');", Integer.parseInt(values[0]), values[1], values[2]));
 
                 //update form
                 teacherView.firstNameField.setText(values[1].toString());
@@ -318,12 +322,13 @@ public class TabbedPaneDemo extends JPanel {
     public static void PopulateStudentsForm(String filename)  {
         try (BufferedReader br = new BufferedReader(new FileReader(filename))) {
             String line;
+            performUpdate("truncate table students");
             while ((line = br.readLine()) != null) {
 
                 String[] values = line.split(",");
 
                 //read text file and updating database
-                performUpdate(String.format("insert into students(ID, FirstName, LastName)\nvalues (%d,'%s', '%s');", Integer.parseInt(values[0]), values[1], values[2]));
+//                performUpdate(String.format("insert into students(ID, FirstName, LastName)\nvalues (%d,'%s', '%s');", Integer.parseInt(values[0]), values[1], values[2]));
 
                 //update form
                 studentView.firstNameField.setText(values[1].toString());
@@ -344,12 +349,12 @@ public class TabbedPaneDemo extends JPanel {
     public static void PopulateCoursesForm(String filename)  {
         try (BufferedReader br = new BufferedReader(new FileReader(filename))) {
             String line;
+            performUpdate("truncate table courses");
             while ((line = br.readLine()) != null) {
-
                 String[] values = line.split(",");
 
                 //read text file and updating database
-                performUpdate(String.format("insert into courses(ID, CourseName, Type)\nvalues (%d,'%s', '%s');", Integer.parseInt(values[0]), values[1], values[2]));
+//                performUpdate(String.format("insert into courses(ID, CourseName, Type)\nvalues (%d,'%s', '%s');", Integer.parseInt(values[0]), values[1], values[2]));
 
                 //update form
                 courseView.CourseNameField.setText(values[1].toString());
@@ -370,12 +375,13 @@ public class TabbedPaneDemo extends JPanel {
     public static void PopulateSectionsForm(String filename)  {
         try (BufferedReader br = new BufferedReader(new FileReader(filename))) {
             String line;
+            performUpdate("truncate table sections");
             while ((line = br.readLine()) != null) {
 
                 String[] values = line.split(",");
 
                 //read text file and updating database
-                performUpdate(String.format("insert into sections(ID, course_id, teacher_id)\nvalues (%d,'%s', '%s');", Integer.parseInt(values[0]), values[1], values[2]));
+//                performUpdate(String.format("insert into sections(ID, course_id, teacher_id)\nvalues (%d,'%s', '%s');", Integer.parseInt(values[0]), values[1], values[2]));
 
                 //update form
                 sectionView.courseSelection.setSelectedItem(Integer.parseInt(values[1]));
@@ -407,12 +413,11 @@ public class TabbedPaneDemo extends JPanel {
         String password = "";    // Enter DB password
         String url = "";         // Enter DB URL
 
-
-        java.sql.Connection connection;
+        
         try {
-            connection = DriverManager.getConnection(
+            con = DriverManager.getConnection(
                     "jdbc:mysql://localhost:3306/p2","root","password");
-            fetchDataFromDatabase("select * from teachers", connection, filename);
+            fetchDataFromDatabase("select * from teachers", con, filename);
 
         } catch (Exception e) {
             System.out.println("Sql exception " + e.getMessage());
@@ -425,13 +430,12 @@ public class TabbedPaneDemo extends JPanel {
         String username ="";     // Enter DB Username
         String password = "";    // Enter DB password
         String url = "";         // Enter DB URL
-
-
-        java.sql.Connection connection;
+        
         try {
-            connection = DriverManager.getConnection(
+            con = DriverManager.getConnection(
                     "jdbc:mysql://localhost:3306/p2","root","password");
-            fetchDataFromDatabase("select * from students", connection, filename);
+
+            fetchDataFromDatabase("select * from students", con, filename);
 
         } catch (Exception e) {
             System.out.println("Sql exception " + e.getMessage());
@@ -446,11 +450,11 @@ public class TabbedPaneDemo extends JPanel {
         String url = "";         // Enter DB URL
 
 
-        java.sql.Connection connection;
         try {
-            connection = DriverManager.getConnection(
+            con = DriverManager.getConnection(
                     "jdbc:mysql://localhost:3306/p2","root","password");
-            fetchDataFromDatabase("select * from courses", connection, filename);
+
+            fetchDataFromDatabase("select * from courses", con, filename);
 
         } catch (Exception e) {
             System.out.println("Sql exception " + e.getMessage());
@@ -465,11 +469,11 @@ public class TabbedPaneDemo extends JPanel {
         String url = "";         // Enter DB URL
 
 
-        java.sql.Connection connection;
         try {
-            connection = DriverManager.getConnection(
+            con = DriverManager.getConnection(
                     "jdbc:mysql://localhost:3306/p2","root","password");
-            fetchDataFromDatabase("select * from sections", connection, filename);
+
+            fetchDataFromDatabase("select * from sections", con, filename);
 
         } catch (Exception e) {
             System.out.println("Sql exception " + e.getMessage());
@@ -477,9 +481,9 @@ public class TabbedPaneDemo extends JPanel {
 
     }
 
-    private static void fetchDataFromDatabase(String selectQuery, java.sql.Connection connection, String filename) throws  Exception{
+    private static void fetchDataFromDatabase(String selectQuery, java.sql.Connection con, String filename) throws  Exception{
         try {
-            Statement stmt = connection.createStatement();
+            Statement stmt = con.createStatement();
             ResultSet rs = stmt.executeQuery(selectQuery);
             int numCols = rs.getMetaData().getColumnCount();
             List<String> resultSetArray=new ArrayList<>();

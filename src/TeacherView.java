@@ -49,6 +49,7 @@ public class TeacherView extends JPanel {
             System.out.println("Select Teacher");
 
             // create the table model with one column named "SectionID" and CourseName
+//            Sections Taught (Not Editable) for the teacher selected
             DefaultTableModel modelCourses = new DefaultTableModel();
             modelCourses.addColumn("SectionID");
             modelCourses.addColumn("CourseName");
@@ -312,7 +313,7 @@ public class TeacherView extends JPanel {
 
         try {
 
-            performUpdate(String.format("insert into teachers(FirstName, LastName)\nvalues ('%s', '%s');", fname, lname));
+            performUpdate(String.format("insert into teachers(ID, FirstName, LastName)\nvalues ('%s', '%s', '%s');", idField.getText(), fname, lname));
 
 
 //            ResultSet b = performQuery("select * from teachers");
@@ -530,12 +531,21 @@ public class TeacherView extends JPanel {
                 contactList.remove(indexInArrayList);
                 buttonPanel.remove(current);
                 reloadButtons();
-    
+
+                //akshi - delete from database teacher
+                //search for teacher in sections table and set teacher = -1
+                int rs = performUpdate(String.format("delete from teachers where id = %s", idField.getText() ));
+                rs = performUpdate(String.format("update sections set teacher_id=-1 where teacher_id = %s", idField.getText() ));
+
+
                 //turn off
                 saveChanges.setEnabled(false);
                 deleteContact.setEnabled(false);
                 submit.setEnabled(true);
                 clear.setEnabled(true);
+                idField.setText("");
+                fname.setText("");
+                lname.setText("");
     
                 current = null;
                 buttonPanel.revalidate();

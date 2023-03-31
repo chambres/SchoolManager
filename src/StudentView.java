@@ -578,13 +578,21 @@ public class StudentView extends JPanel {
                 contactList.remove(indexInArrayList);
                 buttonPanel.remove(current);
                 reloadButtons();
-    
+
+                //akshi - delete from database students
+                //search for teacher in sections table and set teacher = -1
+                int rs = performUpdate(String.format("delete from students where id = %s", idField.getText() ));
+//                rs = performUpdate(String.format("delete from sections where student_id=%s", idField.getText() ));
+
                 //turn off
                 saveChanges.setEnabled(false);
                 deleteContact.setEnabled(false);
                 submit.setEnabled(true);
                 clear.setEnabled(true);
-    
+                idField.setText("");
+                fname.setText("");
+                lname.setText("");
+
                 current = null;
                 buttonPanel.revalidate();
                 buttonPanel.repaint();

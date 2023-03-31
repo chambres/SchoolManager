@@ -502,12 +502,60 @@ public class CourseView extends JPanel {
                 contactList.remove(indexInArrayList);
                 buttonPanel.remove(current);
                 reloadButtons();
-    
+
+
+                //delete from courses with ID selected
+                int updated = performUpdate(String.format("delete from courses where id = %s", idField.getText() )); //delete course with course id
+
+                //select all corresponding sections of the course
+                ResultSet sections = performQuery("Select ID from sections where course_id="+idField.getText());
+                ArrayList<String> sectionsRemoved = new ArrayList<>();
+                while (true) {
+                    try {
+                        if (!sections.next()) break;
+                        sectionsRemoved.add(String.valueOf(sections.getInt("ID")));
+                    } catch (SQLException ex) {
+                        throw new RuntimeException(ex);
+                    }
+                }
+
+                // update the students in those section to no longer have those sections.
+                ResultSet students = performQuery("select * from students");
+                try {
+                    String section;
+                    while (students.next()) {
+                         //Find the list of sections for student
+                        section = students.getString("Section");
+                        String[] sectionsStudent = section.split(":");
+
+                        //Remove section if section is in sectionsRemoved
+                        String sectionList="";
+                        for(int j=0;j<sectionsStudent.length;j++){
+                            if(sectionsRemoved.indexOf(sectionsStudent[j]) == -1) {
+                                if (sectionList.equals(""))
+                                    sectionList = sectionsStudent[j];
+                                else
+                                    sectionList = sectionList + ":" + sectionsStudent[j];
+                            }
+                        }
+
+                        updated = performUpdate("update students SET section='" + sectionList + "' where id=" + students.getString("ID"));
+
+                    }
+                } catch (SQLException ex) {
+                   System.out.println(ex);
+                }
+
+                //delete courses from sections
+                updated = performUpdate(String.format("delete from sections where course_id=%s", idField.getText() ));
                 //turn off
                 saveChanges.setEnabled(false);
                 deleteContact.setEnabled(false);
                 submit.setEnabled(true);
                 clear.setEnabled(true);
+                idField.setText("");
+                fname.setText("");
+                lname.setText("");
     
                 current = null;
                 buttonPanel.revalidate();
