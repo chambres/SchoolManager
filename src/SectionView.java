@@ -12,6 +12,9 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.io.IOException;
 import java.sql.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
 
 import javax.swing.JTable;
 import javax.swing.table.DefaultTableModel;
@@ -244,7 +247,7 @@ public class SectionView extends JPanel {
         studentSelection.setName("studentSelection");
         try{
         while(student.next()) {
-            students.add(student.getString("FirstName") + " " + student.getString("LastName"));
+            students.add(student.getString("FirstName") + " " + student.getString("LastName") + " " + student.getString("ID"));
             studentSelection.addItem(new Item(Integer.parseInt(student.getString("ID")), student.getString("FirstName") + " " + student.getString("LastName")));
         }
         }
@@ -313,8 +316,8 @@ public class SectionView extends JPanel {
         studentSelection.setName("studentSelection");
         try{
             while(student.next()) {
-                students.add(student.getString("FirstName") + " " + student.getString("LastName"));
-                Item itemStudent = new Item(Integer.parseInt(student.getString("ID")), student.getString("LastName") + " " + student.getString("FirstName"));
+                students.add(student.getString("FirstName") + " " + student.getString("LastName") + " " + student.getString("ID"));
+                Item itemStudent = new Item(Integer.parseInt(student.getString("ID")), "(" + student.getString("ID") + ") " + student.getString("LastName") + ", " + student.getString("FirstName"));
                 studentSelection.addItem(itemStudent);
             }
         }
@@ -337,7 +340,7 @@ public class SectionView extends JPanel {
             public void actionPerformed(ActionEvent e){
 
                 System.out.println("Add Student");
-                String student = studentSelection.getSelectedItem().toString() + " " + ((Item)studentSelection.getSelectedItem()).getId();
+                String student = studentSelection.getSelectedItem().toString();
                 selectedStudents.add(student);
 
                 // create the table model with one column named "Students"
@@ -563,7 +566,7 @@ public class SectionView extends JPanel {
             }
             };
        }
-    
+       
        ActionListener submitButtonListener(){
         JTextField fname = CourseNameField;
         JTextField lname = TeacherField;
@@ -571,17 +574,30 @@ public class SectionView extends JPanel {
         return new ActionListener() {
             public void actionPerformed(ActionEvent e) {
                 Item courseItem = ((Item) courseSelection.getSelectedItem());
-                String CourseName = String.valueOf(courseItem.getId()) ; // CourseNameField.getText();
                 Item teacherItem = ((Item) teacherSelection.getSelectedItem());
-                String Teacher = String.valueOf(teacherItem.getId()); //teacherSelection TeacherField.getText();
-
-                if(CourseName == null || CourseName.equals("") || Teacher == null || Teacher.equals("")){
+                if(courseItem == null || teacherItem == null){
                     //show dialog box
                     JOptionPane.showMessageDialog(null, "Please choose teacher and course");
                     return;
                 }
 
-    
+                int CourseID = courseItem.getId();
+                int TeacherID = teacherItem.getId();
+
+                String CourseName = String.valueOf(courseSelection.getSelectedItem());
+                String Teacher = String.valueOf(teacherSelection.getSelectedItem());
+
+                System.out.println("here ya go : " + CourseName + " " + Teacher);
+
+                //System.out.println(CourseName.split(",")[0] + " " + CourseName.split(",")[1]);
+                System.out.println(selectedStudents.toString());
+
+
+                for(String s : selectedStudents){
+                    
+                    performUpdate(String.format("update students set Section = CONCAT(Section, '%s;') where id='%s';", CourseName, parenthesisRegex(s) ));
+                }
+
                 addButton();
                 idField.setText(Integer.toString(getNextIncrement()));
                 //clear fields
@@ -590,6 +606,17 @@ public class SectionView extends JPanel {
     
             }
             };
+       }
+
+       String parenthesisRegex(String input){
+        Pattern pattern = Pattern.compile("\\((.*?)\\)");
+        Matcher matcher = pattern.matcher(input);
+        if (matcher.find()) {
+            String textWithinParentheses = matcher.group(1);
+            System.out.println(textWithinParentheses);
+            return textWithinParentheses;
+        }
+        return "";
        }
     
        ActionListener deleteButtonListener(){
@@ -682,7 +709,7 @@ public class SectionView extends JPanel {
         try{
         while(courses.next()) {
             choices.add(courses.getString("CourseName"));
-            courseSelection.addItem(new Item(Integer.parseInt(courses.getString("ID")), courses.getString("CourseName") + " " + courses.getString("Type")));
+            courseSelection.addItem(new Item(Integer.parseInt(courses.getString("ID")), courses.getString("CourseName")));
         }
         }
         catch(Exception e){ System.out.println(e);}
@@ -693,7 +720,7 @@ public class SectionView extends JPanel {
         try{
         while(teacher.next()) {
             teachers.add(teacher.getString("FirstName") + " " + teacher.getString("LastName"));
-            teacherSelection.addItem(new Item(Integer.parseInt(teacher.getString("ID")), teacher.getString("FirstName") + " " + teacher.getString("LastName")));
+            teacherSelection.addItem(new Item(Integer.parseInt(teacher.getString("ID")), teacher.getString("FirstName") + ", " + teacher.getString("LastName")));
 
         }
         }
@@ -704,7 +731,7 @@ public class SectionView extends JPanel {
         studentSelection.removeAllItems();
         try{
             while(student.next()) {
-                Item itemStudent = new Item(Integer.parseInt(student.getString("ID")), student.getString("LastName") + " " + student.getString("FirstName"));
+                Item itemStudent = new Item(Integer.parseInt(student.getString("ID")), student.getString("LastName") + ", " + student.getString("FirstName"));
                 studentSelection.addItem(itemStudent);
             }
         }

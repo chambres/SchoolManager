@@ -84,7 +84,7 @@ public class StudentView extends JPanel {
         }
         catch(Exception e){ System.out.println(e);}
 
-        int rs = performUpdate("create table students (ID int auto_increment primary key,\nFirstName varchar(500) NOT null,\nLastName varchar(500) NOT null,\nSection varchar(500)\n);");
+        int rs = performUpdate("create table students (ID int auto_increment primary key,\nFirstName varchar(500) NOT null,\nLastName varchar(500) NOT null,\nSection varchar(10000) DEFAULT ''\n);");
         
 
         performUpdate("DELETE FROM students;");
@@ -285,6 +285,7 @@ public class StudentView extends JPanel {
     }
 
     public static DefaultTableModel buildTableModel(ResultSet rs) throws SQLException {
+
         ResultSetMetaData metaData = rs.getMetaData();
         Vector<String> columnNames = new Vector<>();
         int columnCount = metaData.getColumnCount();
@@ -299,6 +300,38 @@ public class StudentView extends JPanel {
             }
             data.add(row);
         }
+        return new DefaultTableModel(data, columnNames);
+    }
+    public DefaultTableModel buildTableModelForSection(ResultSet rs) throws SQLException {
+        
+        ResultSetMetaData metaData = rs.getMetaData();
+        Vector<String> columnNames = new Vector<>();
+        int columnCount = 2;
+
+        columnNames.add("ID");
+        columnNames.add("Course Name");
+
+        String sectionString = "";
+        while(rs.next()){
+            sectionString = rs.getString("Section");
+        }
+        String[] sections = sectionString.split(";");
+                
+
+        Vector<Vector<Object>> data = new Vector<>();
+
+        for(String s : sections){
+            Vector<Object> row = new Vector<>();
+            row.add(s);
+            
+            ResultSet tmp = performQuery("select ID from courses where CourseName = '" + s + "';");
+            while(tmp.next()){
+                row.add(tmp.getString("ID"));
+            }
+
+            data.add(row);
+        }   
+
         return new DefaultTableModel(data, columnNames);
     }   
 
@@ -357,7 +390,7 @@ public class StudentView extends JPanel {
                 try{
                     DefaultTableModel model = (DefaultTableModel) table.getModel();
                     model.setRowCount(0);
-                    model = buildTableModel(performQuery("SELECT * FROM students;"));
+                    model = buildTableModelForSection(performQuery("SELECT * FROM students;"));
                     table.setModel(model);
                     table.setBounds(180-60+60-30-130 ,200+20+70+70+40, 360, table.getRowCount()*17);
                 }
