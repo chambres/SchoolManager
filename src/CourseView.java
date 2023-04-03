@@ -72,7 +72,7 @@ public class CourseView extends JPanel {
         int rs = performUpdate(
         "create table courses (ID int auto_increment primary key," + "\n" +
         "CourseName varchar(500) NOT null," + "\n" + 
-        "Type varchar(500) NOT null" + "\n" + 
+        "Type int NOT null" + "\n" +
         ");"
         );
 
@@ -276,7 +276,7 @@ public class CourseView extends JPanel {
 
 
 
-    void addButton(){
+    public void addButton(){
         String fname = CourseNameField.getText();
         String lname = TypeField.getText();
 
@@ -285,11 +285,11 @@ public class CourseView extends JPanel {
             
             performUpdate(String.format(
                 "insert into courses(CourseName, Type)" +
-                " values ('%s', '%s');" , fname, lname));
+                " values ('%s', %s);" , fname, lname));
             
             ResultSet b = performQuery("select * from courses");
             while(b.next()){
-                System.out.println(b.getString("ID") + " " + b.getString("CourseName") + " " + b.getString("Type"));
+                System.out.println(b.getString("ID") + " " + b.getString("CourseName") + " " + b.getInt("Type"));
             }
         }
         catch(Exception e){ System.out.println(e);}
@@ -310,6 +310,54 @@ public class CourseView extends JPanel {
                 clear.setEnabled(false);
 
                 ResultSet b = performQuery("SELECT id FROM courses WHERE CourseName = + '" + fname + "' AND Type = '" + lname + "';");
+                try{
+                    while(b.next()){
+                        idField.setText(b.getString("ID"));
+                    }
+                }
+                catch(Exception e1){System.out.println(e1);}
+
+                current = tmp;
+            }
+        };
+        button.addActionListener(b);
+        contactList.add(button);
+        reloadButtons();
+    }
+
+    public void addButton(String fname, String lname){
+
+
+
+        try{
+
+            performUpdate(String.format(
+                    "insert into courses(CourseName, Type)" +
+                            " values ('%s', %s);" , fname, lname));
+
+            ResultSet b = performQuery("select * from courses");
+            while(b.next()){
+                System.out.println(b.getString("ID") + " " + b.getString("CourseName") + " " + b.getString("Type"));
+            }
+        }
+        catch(Exception e){ System.out.println(e);}
+
+        ContactButton button = new ContactButton(fname, lname);
+
+        ActionListener b = new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                System.out.println("Button clicked");
+                ContactButton tmp = (ContactButton) e.getSource();
+                CourseNameField.setText(tmp.fname);
+                TypeField.setText(tmp.lname);
+
+                saveChanges.setEnabled(true);
+                deleteContact.setEnabled(true);
+                submit.setEnabled(false);
+                clear.setEnabled(false);
+
+                ResultSet b = performQuery("SELECT id FROM courses WHERE CourseName = + '" + fname + "' AND Type = " + lname + ";");
                 try{
                     while(b.next()){
                         idField.setText(b.getString("ID"));
@@ -366,6 +414,7 @@ public class CourseView extends JPanel {
                     JOptionPane.showMessageDialog(null, "Please enter a course name and type");
                     return;
                 }
+                int updated = performUpdate("update courses SET CourseName='" + CourseName + "', Type=" + Type +  " where id=" + idField.getText());
     
                 int indexInArrayList = contactList.indexOf(current);
                 if(indexInArrayList == -1){
@@ -453,12 +502,60 @@ public class CourseView extends JPanel {
                 contactList.remove(indexInArrayList);
                 buttonPanel.remove(current);
                 reloadButtons();
-    
+
+
+                //delete from courses with ID selected
+                int updated = performUpdate(String.format("delete from courses where id = %s", idField.getText() )); //delete course with course id
+
+                //select all corresponding sections of the course
+                ResultSet sections = performQuery("Select ID from sections where course_id="+idField.getText());
+                ArrayList<String> sectionsRemoved = new ArrayList<>();
+                while (true) {
+                    try {
+                        if (!sections.next()) break;
+                        sectionsRemoved.add(String.valueOf(sections.getInt("ID")));
+                    } catch (SQLException ex) {
+                        throw new RuntimeException(ex);
+                    }
+                }
+
+                // update the students in those section to no longer have those sections.
+                ResultSet students = performQuery("select * from students");
+                try {
+                    String section;
+                    while (students.next()) {
+                         //Find the list of sections for student
+                        section = students.getString("Section");
+                        String[] sectionsStudent = section.split(":");
+
+                        //Remove section if section is in sectionsRemoved
+                        String sectionList="";
+                        for(int j=0;j<sectionsStudent.length;j++){
+                            if(sectionsRemoved.indexOf(sectionsStudent[j]) == -1) {
+                                if (sectionList.equals(""))
+                                    sectionList = sectionsStudent[j];
+                                else
+                                    sectionList = sectionList + ":" + sectionsStudent[j];
+                            }
+                        }
+
+                        updated = performUpdate("update students SET section='" + sectionList + "' where id=" + students.getString("ID"));
+
+                    }
+                } catch (SQLException ex) {
+                   System.out.println(ex);
+                }
+
+                //delete courses from sections
+                updated = performUpdate(String.format("delete from sections where course_id=%s", idField.getText() ));
                 //turn off
                 saveChanges.setEnabled(false);
                 deleteContact.setEnabled(false);
                 submit.setEnabled(true);
                 clear.setEnabled(true);
+                idField.setText("");
+                fname.setText("");
+                lname.setText("");
     
                 current = null;
                 buttonPanel.revalidate();

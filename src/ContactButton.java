@@ -16,6 +16,14 @@ public class ContactButton extends JButton{
         this.sectionstaught = sectionstaught;
     }
 
+    //create constructor
+    //Added this to get ID when clicked - when teacher/section is deleted from other view
+    public ContactButton(String fname, String lname, String id){
+        super(lname +", " + fname + ", " + id);
+        this.fname = fname;
+        this.lname = lname;
+        this.id = id;
+        this.sectionstaught = sectionstaught;
+    }
 
-    
 }

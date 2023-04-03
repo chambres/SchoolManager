@@ -14,6 +14,8 @@ import java.io.IOException;
 import java.sql.*;
 
 import javax.swing.JTable;
+import javax.swing.event.ListSelectionEvent;
+import javax.swing.event.ListSelectionListener;
 import javax.swing.table.DefaultTableModel;
 import java.util.Vector;
 
@@ -23,8 +25,8 @@ public class StudentView extends JPanel {
     Connection con;
 
 
-    
-    
+
+
 
 
     JTextField firstNameField = new JTextField();
@@ -35,6 +37,11 @@ public class StudentView extends JPanel {
     JButton clear;
     JButton saveChanges;
     JButton deleteContact;
+    JTable tableCourses;
+
+    String[][] coursesForStudent = {};
+    String[] columnNamesForCourses = { "SectionID", "Course" };
+    DefaultTableModel modelCourses;
 
     ActionListener b = new ActionListener() {
         @Override
@@ -43,7 +50,7 @@ public class StudentView extends JPanel {
             ContactButton tmp = (ContactButton) e.getSource();
             firstNameField.setText(tmp.fname);
             lastNameField.setText(tmp.lname);
-            
+
             saveChanges.setEnabled(true);
             deleteContact.setEnabled(true);
             submit.setEnabled(false);
@@ -51,17 +58,39 @@ public class StudentView extends JPanel {
 
             current = tmp;
 
-            try{
-                DefaultTableModel model = (DefaultTableModel) table.getModel();
-                model.setRowCount(0);
-                model = buildTableModel(performQuery("SELECT * FROM students;"));
-                table.setModel(model);
-                table.setBounds(180-60+60-30-130 ,200+20+70+70+40, 360, table.getRowCount()*17);
+            System.out.println("Select Student");
+
+            // create the table model with one column named "SectionID" and CourseName
+            DefaultTableModel modelCourses = new DefaultTableModel();
+            modelCourses.addColumn("SectionID");
+            modelCourses.addColumn("CourseName");
+
+            ResultSet a = performQuery("SELECT section FROM sections where students.ID=" + Integer.parseInt((idField.getText())));
+            try {
+                a.next();
+                String[] sections = a.getString("1").split(":");
+                for(int i=0; i<sections.length;i++) {
+                    String query = "SELECT sections.ID as SectionID, courses.CourseName as CourseName FROM sections, courses where sections.ID=" + sections[i] + " and courses.ID=sections.course_id";
+                    ResultSet courses = performQuery(query);
+                    courses.next();
+                    modelCourses.addRow(new Object[] {courses.getString("SectionID"),courses.getString("CourseName") });
+                }
+
+            } catch (SQLException ex) {
+                throw new RuntimeException(ex);
             }
-            catch(Exception e1){System.out.println(e1);}
 
+            // add the student names to the table model
 
+            DefaultTableModel model1 = (DefaultTableModel) tableCourses.getModel();
+
+            model1.setColumnIdentifiers(new String[]{"SectionID", "CourseName"});
+            model1.setRowCount(0);
+            model1 = modelCourses;
+            tableCourses.setBounds(180-60+60-30-130 ,200+20+70+70+40, 360, tableCourses.getRowCount()*17);
+            tableCourses.setModel(model1);
         }
+
     };
 
     static ArrayList<ContactButton> contactList = new ArrayList<ContactButton>();
@@ -76,27 +105,27 @@ public class StudentView extends JPanel {
     private JPanel buttonPanel = new JPanel(new GridLayout(0, 1)); // 1 column grid
     public StudentView() {
 
-        
+
 
         try{
-        Class.forName("com.mysql.jdbc.Driver");
-        con= DriverManager.getConnection("jdbc:mysql://localhost:3306/p2","root","password");
+            Class.forName("com.mysql.jdbc.Driver");
+            con= DriverManager.getConnection("jdbc:mysql://localhost:3306/p2","root","password");
         }
         catch(Exception e){ System.out.println(e);}
 
         int rs = performUpdate("create table students (ID int auto_increment primary key,\nFirstName varchar(500) NOT null,\nLastName varchar(500) NOT null,\nSection varchar(500)\n);");
-        
+
 
         performUpdate("DELETE FROM students;");
         performUpdate("ALTER TABLE students AUTO_INCREMENT = 1;");
         System.out.println(rs);
-    
-        
+
+
         File f = new File("contacts.txt");
 
         Start();
 
-        if(f.exists() && !f.isDirectory()) { 
+        if(f.exists() && !f.isDirectory()) {
             try {
                 List<String> lines = Files.readAllLines(Paths.get("contacts.txt"), java.nio.charset.StandardCharsets.UTF_8);
                 for(String line: lines) {
@@ -121,9 +150,9 @@ public class StudentView extends JPanel {
         ResultSet a = performQuery("SELECT COALESCE(MAX(id), 0) + 1 FROM students;");
         int maxID = 0;
         try{
-        if(a.next()) {
-            maxID = a.getInt(1);
-        }
+            if(a.next()) {
+                maxID = a.getInt(1);
+            }
         }
         catch(Exception e){ System.out.println(e);}
         return maxID;
@@ -133,26 +162,26 @@ public class StudentView extends JPanel {
 
 
 
-        
+
 
         JPanel panel = new JPanel(new BorderLayout());
         panel.add(buttonPanel, BorderLayout.PAGE_START);
         scrollPane = new JScrollPane(panel);
         scrollPane.getViewport().setPreferredSize(new Dimension(450, 500));
-    
-        
+
+
         JPanel topPanel = new JPanel();
-        
+
         int gap = 2;
         setBorder(BorderFactory.createEmptyBorder(gap, gap, gap, gap));
         setLayout(new BorderLayout(gap, gap));
-        
+
         JPanel centerPanel = new JPanel(new BorderLayout());
         centerPanel.setPreferredSize(new Dimension(850, 500));
         centerPanel.setMaximumSize(new Dimension(450, 500));
         centerPanel.add(scrollPane, BorderLayout.WEST);
 
-        JPanel rightPanel = new JPanel(null);        
+        JPanel rightPanel = new JPanel(null);
         rightPanel.setPreferredSize(new Dimension(400, 500));
         rightPanel.setMaximumSize(new Dimension(400, 500));
         rightPanel.setBackground(Color.green);
@@ -215,30 +244,29 @@ public class StudentView extends JPanel {
         test.addActionListener(testListener());
         rightPanel.add(test);
 
-        try{
-            table = new JTable(buildTableModel(performQuery("SELECT * FROM students;")));
-            table.setBounds(180-60+60-offset-130 ,200+20+70+70+40, 360, table.getRowCount()*17);
-            rightPanel.add(table);
-        }
-        catch(Exception e){ System.out.println(e);}
-
-        
-
+        // create the table with the table model
+        modelCourses = new DefaultTableModel();
+        modelCourses.addColumn("SectionID");
+        modelCourses.addColumn("CourseName");
+        tableCourses = new JTable(modelCourses);
+        tableCourses.setBackground(Color.red);
+        tableCourses.setBounds(180-60+60-offset-130 ,200+20+70+70+40, 360, tableCourses.getRowCount()*17);
+        rightPanel.add(tableCourses);
         centerPanel.add(rightPanel, BorderLayout.EAST);
-        
-        
+
+
         add(topPanel, BorderLayout.PAGE_START);
         add(centerPanel, BorderLayout.CENTER);
     }
 
-    JTable table;
+
 
     ActionListener testListener(){
-        
+
         return new ActionListener(){
             public void actionPerformed(ActionEvent e){
                 System.out.println("Test");
-                 for (int i = 1; i <= 21; i++) { // add some sample buttons
+                for (int i = 1; i <= 21; i++) { // add some sample buttons
                     JButton button = new JButton("Button " + i);
                     button.setAlignmentX(Component.CENTER_ALIGNMENT); // set the alignment of the button to center
                     button.setHorizontalAlignment(SwingConstants.LEFT); // left align the text on the button
@@ -247,12 +275,12 @@ public class StudentView extends JPanel {
                     ContactButton tmp = new ContactButton("Last Name " + i, "John " + i);
                     tmp.addActionListener(b);
                     contactList.add(tmp);
-                    
+
                     //buttonPanel.add(button);
                     reloadButtons();
 
                     buttonPanel.revalidate(); // tell the panel to update its layout
-                    
+
                     scrollPane.setViewportView(buttonPanel);
                     scrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);
                     scrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
@@ -276,9 +304,9 @@ public class StudentView extends JPanel {
 
 
     ResultSet performQuery(String query){
-        
+
         try{ Class.forName("com.mysql.jdbc.Driver"); return con.createStatement().executeQuery(query);}
-        
+
         catch(Exception e){System.out.println(e);}
 
         return null;
@@ -300,11 +328,11 @@ public class StudentView extends JPanel {
             data.add(row);
         }
         return new DefaultTableModel(data, columnNames);
-    }   
+    }
 
     int performUpdate(String query){
         try{ Class.forName("com.mysql.jdbc.Driver"); return con.createStatement().executeUpdate(query);}
-        
+
         catch(Exception e){System.out.println(e);}
 
         return -1;
@@ -318,10 +346,10 @@ public class StudentView extends JPanel {
 
 
         try{
-            
+
             performUpdate(String.format("insert into students(FirstName, LastName)\nvalues ('%s', '%s');", fname, lname));
-            
-            
+
+
             ResultSet b = performQuery("select * from students");
             while(b.next()){
                 System.out.println(b.getString("ID") + " " + b.getString("FirstName") + " " + b.getString("LastName"));
@@ -338,7 +366,7 @@ public class StudentView extends JPanel {
                 ContactButton tmp = (ContactButton) e.getSource();
                 firstNameField.setText(tmp.fname);
                 lastNameField.setText(tmp.lname);
-                
+
                 saveChanges.setEnabled(true);
                 deleteContact.setEnabled(true);
                 submit.setEnabled(false);
@@ -354,14 +382,34 @@ public class StudentView extends JPanel {
 
                 current = tmp;
 
-                try{
-                    DefaultTableModel model = (DefaultTableModel) table.getModel();
-                    model.setRowCount(0);
-                    model = buildTableModel(performQuery("SELECT * FROM students;"));
-                    table.setModel(model);
-                    table.setBounds(180-60+60-30-130 ,200+20+70+70+40, 360, table.getRowCount()*17);
+                reloadButtons();
+                System.out.println("Select Student");
+                // create the table model with one column named "SectionId" and CourseName
+                modelCourses = new DefaultTableModel();
+                modelCourses.setColumnIdentifiers(new String[]{"SectionId", "CourseName"});
+                if(idField.getText()!=null && idField.getText()!="") {
+                    ResultSet a = performQuery("SELECT section FROM students where students.ID=" + Integer.parseInt((idField.getText())));
+                    try {
+                        if (a != null && a.next() ) {
+
+                            if (a.getString(1) != null) {
+                                String[] sections = a.getString(1).split(":");
+                                for (int i = 0; i < sections.length; i++) {
+                                    String query = "SELECT sections.ID as sectionID, courses.CourseName FROM sections, courses where sections.ID=" + sections[i] + " and courses.ID=sections.course_id";
+                                    ResultSet courses = performQuery(query);
+                                    courses.next();
+                                    modelCourses.addRow(new Object[]{courses.getString("sectionID"), courses.getString("CourseName")});
+                                }
+                            }
+                            tableCourses.setBackground(Color.red);
+                            tableCourses.setAutoCreateRowSorter(true);
+                            tableCourses.setModel(modelCourses);
+                            tableCourses.setBounds(180-60+60-30-130 ,200+20+70+70+40, 360, tableCourses.getRowCount()*17);
+                        }
+                    } catch (Exception ex) {
+                        throw new RuntimeException(ex);
+                    }
                 }
-                catch(Exception e1){System.out.println(e1);}
             }
         };
         button.addActionListener(b);
@@ -372,11 +420,11 @@ public class StudentView extends JPanel {
     void reloadButtons() {
 
         //SortContactButtons.sortContactButtonsByLastName(contactList);
-        //contactList = 
+        //contactList =
 
 
         buttonPanel.removeAll(); // remove all existing buttons from the panel
-        
+
         for (ContactButton button : contactList) {
             button.setAlignmentX(Component.LEFT_ALIGNMENT); // set the alignment of the button to center
             button.setHorizontalAlignment(SwingConstants.LEFT); // left align the text on the button
@@ -392,21 +440,17 @@ public class StudentView extends JPanel {
         // tell the panel to update its layout
         setVisible(true);
     }
-    
-    
-    
+
+
+
     ActionListener saveButtonListener(){
         JTextField fname = firstNameField;
         JTextField lname = lastNameField;
 
-    
+
         return new ActionListener() {
             public void actionPerformed(ActionEvent e) {
-    
-                
-                
-    
-    
+
                 String firstname = fname.getText();
                 String lastname = lname.getText();
                 if(firstname == null || firstname.equals("") || lastname == null || lastname.equals("")){
@@ -414,60 +458,79 @@ public class StudentView extends JPanel {
                     JOptionPane.showMessageDialog(null, "Please enter a first and last name");
                     return;
                 }
-    
+
                 int indexInArrayList = contactList.indexOf(current);
                 if(indexInArrayList == -1){
                     System.out.println(firstname + " " + lastname + " not found");
                 }; //not found (shouldn't happen
-    
+
                 //clear fields
                 fname.setText("");
                 lname.setText("");
-                idField.setText(Integer.toString(getNextIncrement()));
-    
+
+                int updated = performUpdate("update students SET firstname='" + firstname + "', lastname ='" + lastname + "' where id=" + Integer.parseInt(idField.getText()));
+
                 ContactButton tmp = new ContactButton(firstname, lastname);
                 ActionListener b = new ActionListener() {
                     @Override
                     public void actionPerformed(ActionEvent e) {
-                        System.out.println("Button clicked");
+                        System.out.println("Button clicked line 476");
                         ContactButton tmp = (ContactButton) e.getSource();
                         firstNameField.setText(tmp.fname);
                         lastNameField.setText(tmp.lname);
-                        
+
                         saveChanges.setEnabled(true);
                         deleteContact.setEnabled(true);
                         submit.setEnabled(false);
                         clear.setEnabled(false);
-        
+
                         current = tmp;
-
-
-                        try{
-                            DefaultTableModel model = (DefaultTableModel) table.getModel();
-                            model.setRowCount(0);
-                            model = buildTableModel(performQuery("SELECT * FROM students;"));
-                            table.setModel(model);
-                            table.setBounds(180-60+60-30-130 ,200+20+70+70+40, 360, table.getRowCount()*17);
+                        modelCourses = new DefaultTableModel();
+                        modelCourses.setColumnIdentifiers(new String[]{"SectionId", "CourseName"});
+                        ResultSet a = performQuery("SELECT section FROM sections where students.ID=" + Integer.parseInt((idField.getText())));
+                        try {
+                            a.next();
+                            String[] sections = a.getString("1").split(":");
+                            for (int i = 0; i < sections.length; i++) {
+                                String query = "SELECT sections.ID as SectionID, courses.CourseName as CourseName FROM sections, courses where sections.ID=" + sections[i] + " and courses.ID=sections.course_id";
+                                ResultSet courses = performQuery(query);
+                                courses.next();
+                                modelCourses.addRow(new Object[]{courses.getString("SectionID"), courses.getString("CourseName")});
+                            }
+                        } catch (SQLException ex) {
+                            System.out.println(ex.getMessage());
                         }
-                        catch(Exception e1){System.out.println(e1);}
+
+                        tableCourses.setBackground(Color.red);
+                        tableCourses.setAutoCreateRowSorter(true);
+                        tableCourses.setModel(modelCourses);
+                        tableCourses.setBounds(180-60+60-30-130 ,200+20+70+70+40, 360, tableCourses.getRowCount()*17);
+//
+//                        model1.setColumnIdentifiers(new String[]{"SectionID", "CourseName"});
+//
+//                        model1.setRowCount(0);
+//                        model1 = modelCourses;
+//                        tableCourses.setAutoCreateRowSorter(true);
+//                        tableCourses.setModel(model1);
                     }
                 };
-                tmp.addActionListener(b);
+                 tmp.addActionListener(b);
                 contactList.set(indexInArrayList, tmp);
                 reloadButtons();
-    
+
                 //turn off
                 saveChanges.setEnabled(false);
                 deleteContact.setEnabled(false);
                 submit.setEnabled(true);
                 clear.setEnabled(true);
-    
+                idField.setText(Integer.toString(getNextIncrement()));
+
                 current = null;
             }
-            };
-       }
-    
-       ActionListener submitButtonListener(){
+        };
+    }
+
+    ActionListener submitButtonListener(){
         JTextField fname = firstNameField;
         JTextField lname = lastNameField;
 
@@ -481,18 +544,22 @@ public class StudentView extends JPanel {
                     return;
                 }
 
-    
-                addButton();
+
+                try {
+                    addButton();
+                } catch (Exception ex) {
+                    System.out.println(ex);
+                }
                 idField.setText(Integer.toString(getNextIncrement()));
                 //clear fields
                 fname.setText("");
                 lname.setText("");
-    
+
             }
-            };
-       }
-    
-       ActionListener deleteButtonListener(){
+        };
+    }
+
+    ActionListener deleteButtonListener(){
         JTextField fname = firstNameField;
         JTextField lname = lastNameField;
 
@@ -511,13 +578,21 @@ public class StudentView extends JPanel {
                 contactList.remove(indexInArrayList);
                 buttonPanel.remove(current);
                 reloadButtons();
-    
+
+                //akshi - delete from database students
+                //search for teacher in sections table and set teacher = -1
+                int rs = performUpdate(String.format("delete from students where id = %s", idField.getText() ));
+//                rs = performUpdate(String.format("delete from sections where student_id=%s", idField.getText() ));
+
                 //turn off
                 saveChanges.setEnabled(false);
                 deleteContact.setEnabled(false);
                 submit.setEnabled(true);
                 clear.setEnabled(true);
-    
+                idField.setText("");
+                fname.setText("");
+                lname.setText("");
+
                 current = null;
                 buttonPanel.revalidate();
                 buttonPanel.repaint();
