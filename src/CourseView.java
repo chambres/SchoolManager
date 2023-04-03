@@ -120,6 +120,8 @@ public class CourseView extends JPanel {
         return maxID;
     }
 
+    JRadioButton[] types;
+    
     void Start(){
 
 
@@ -169,12 +171,50 @@ public class CourseView extends JPanel {
         labelY = 30;
         idField.setEditable(false);
         idField.setText(Integer.toString(getNextIncrement()));
-        JTextField[] fields = {CourseNameField, TypeField, idField}; // store the text fields in an array
-        for(JTextField field : fields) { // loop through the text fields
-            field.setBounds(labelX+100, labelY, 220, labelHeight); // hardcode the position and size of the text field
-            labelY += labelHeight + labelGap; // update the Y position for the next text field
-            rightPanel.add(field);
+       
+
+        CourseNameField.setBounds(labelX+100, labelY, 220, labelHeight); // hardcode the position and size of the text field
+        labelY += labelHeight + labelGap; // update the Y position for the next text field
+        rightPanel.add(CourseNameField);
+
+        
+
+        //radio button for type
+        JRadioButton Academic =new JRadioButton("Academic");
+        Academic.setBounds(labelX+100, labelY, 100, labelHeight);
+        rightPanel.add(Academic);
+
+        JRadioButton AP =new JRadioButton("AP");
+        AP.setBounds(labelX+100+96, labelY,50, labelHeight);
+        rightPanel.add(AP);
+
+        JRadioButton KAP =new JRadioButton("KAP");
+        KAP.setBounds(labelX+100+96+50, labelY, 100, labelHeight);
+        rightPanel.add(KAP);
+        labelY += labelHeight + labelGap; // update the Y position for the next text field
+
+        idField.setBounds(labelX+100, labelY, 220, labelHeight); // hardcode the position and size of the text field
+        labelY += labelHeight + labelGap; // update the Y position for the next text field
+        rightPanel.add(idField);
+
+        JRadioButton[] types = {Academic, AP, KAP}; // store the labels in an array
+        for(JRadioButton typess : types) { // loop through the labels
+            typess.addActionListener(new ActionListener() {
+                @Override
+                public void actionPerformed(ActionEvent e) {
+                    for(JRadioButton typea : types) {
+
+                        JRadioButton tmp = (JRadioButton)e.getSource();
+                        if(typea != tmp)
+                            typea.setSelected(false);
+                        System.out.println(typea.getText() + " " + tmp.getText());
+
+                        
+                    }
+                }
+            });
         }
+
         int offset = 30;
         int yOff = 20;
         saveChanges = new JButton("Save");
