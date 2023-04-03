@@ -19,10 +19,6 @@ public class CourseView extends JPanel {
     Connection con;
 
 
-    
-    
-
-
     JTextField CourseNameField = new JTextField();
     JTextField TypeField = new JTextField();
     JTextField idField = new JTextField();
@@ -120,7 +116,13 @@ public class CourseView extends JPanel {
         return maxID;
     }
 
-    JRadioButton[] types;
+
+    //radio button for type
+    JRadioButton Academic =new JRadioButton("Academic");
+    JRadioButton AP =new JRadioButton("AP");
+    JRadioButton KAP =new JRadioButton("KAP");
+
+    JRadioButton[] types = {Academic, AP, KAP}; // store the labels in an array
     
     void Start(){
 
@@ -180,15 +182,13 @@ public class CourseView extends JPanel {
         
 
         //radio button for type
-        JRadioButton Academic =new JRadioButton("Academic");
+
         Academic.setBounds(labelX+100, labelY, 100, labelHeight);
         rightPanel.add(Academic);
 
-        JRadioButton AP =new JRadioButton("AP");
         AP.setBounds(labelX+100+96, labelY,50, labelHeight);
         rightPanel.add(AP);
 
-        JRadioButton KAP =new JRadioButton("KAP");
         KAP.setBounds(labelX+100+96+50, labelY, 100, labelHeight);
         rightPanel.add(KAP);
         labelY += labelHeight + labelGap; // update the Y position for the next text field
@@ -197,7 +197,7 @@ public class CourseView extends JPanel {
         labelY += labelHeight + labelGap; // update the Y position for the next text field
         rightPanel.add(idField);
 
-        JRadioButton[] types = {Academic, AP, KAP}; // store the labels in an array
+        
         for(JRadioButton typess : types) { // loop through the labels
             typess.addActionListener(new ActionListener() {
                 @Override
@@ -290,7 +290,9 @@ public class CourseView extends JPanel {
             @Override
             public void actionPerformed(ActionEvent e) {
                 CourseNameField.setText("");
-                TypeField.setText("");
+                for(JRadioButton button : types ){
+                    button.setSelected(false);
+                }
             }
         };
         return a;
@@ -314,11 +316,20 @@ public class CourseView extends JPanel {
         return -1;
     }
 
-
+    String getStringFromRadioButtons(){
+        for(JRadioButton a : types){
+            if(a.isSelected()){
+                return a.getText();
+            }
+        }
+        return "";
+    }
 
     public void addButton(){
         String fname = CourseNameField.getText();
-        String lname = TypeField.getText();
+        String lname = String.valueOf(TypeToInt(getStringFromRadioButtons()));
+
+        
 
 
         try{
@@ -436,6 +447,19 @@ public class CourseView extends JPanel {
         // tell the panel to update its layout
         setVisible(true);
     }
+
+    int TypeToInt(String type){
+        switch(type){
+            case "Academic":
+                return 0;
+            case "KAP":
+                return 1;
+            case "AP":
+                return 2;
+            default:
+                return 0;
+        }
+    }
     
     
     
@@ -448,7 +472,7 @@ public class CourseView extends JPanel {
             public void actionPerformed(ActionEvent e) {
     
                 String CourseName = fname.getText();
-                String Type = lname.getText();
+                String Type = String.valueOf(TypeToInt(getStringFromRadioButtons()));
                 if(CourseName == null || CourseName.equals("") || Type == null || Type.equals("")){
                     //show dialog box
                     JOptionPane.showMessageDialog(null, "Please enter a course name and type");
@@ -479,6 +503,8 @@ public class CourseView extends JPanel {
                         deleteContact.setEnabled(true);
                         submit.setEnabled(false);
                         clear.setEnabled(false);
+
+                        
         
                         current = tmp;
                     }
@@ -497,6 +523,19 @@ public class CourseView extends JPanel {
             }
             };
        }
+
+       int RadioButtonToInt(JRadioButton a){
+            switch(a.getText()){
+                case "Academic":
+                    return 0;
+                case "KAP":
+                    return 1;
+                case "AP":
+                    return 2;
+                default:
+                    return 0;
+            }
+       }
     
        ActionListener submitButtonListener(){
         JTextField fname = CourseNameField;
@@ -505,8 +544,13 @@ public class CourseView extends JPanel {
         return new ActionListener() {
             public void actionPerformed(ActionEvent e) {
                 String CourseName = fname.getText();
-                String Type = lname.getText();
-                if(CourseName == null || CourseName.equals("") || Type == null || Type.equals("")){
+                String type ="";
+                for(JRadioButton button : types){
+                    if(button.isSelected()){
+                        type = String.valueOf(RadioButtonToInt(button));
+                    }
+                }
+                if(CourseName == null || CourseName.equals("") || type==""){
                     //show dialog box
                     JOptionPane.showMessageDialog(null, "Please enter a course Name and type");
                     return;
@@ -518,6 +562,10 @@ public class CourseView extends JPanel {
                 //clear fields
                 fname.setText("");
                 lname.setText("");
+
+                for(JRadioButton button : types ){
+                    button.setSelected(false);
+                }
     
             }
             };
