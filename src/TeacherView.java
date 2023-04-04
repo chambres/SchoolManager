@@ -144,6 +144,8 @@ public class TeacherView extends JPanel {
         return maxID;
     }
 
+    JPanel rightPanel;
+
     void Start(){
 
 
@@ -167,7 +169,7 @@ public class TeacherView extends JPanel {
         centerPanel.setMaximumSize(new Dimension(450, 500));
         centerPanel.add(scrollPane, BorderLayout.WEST);
 
-        JPanel rightPanel = new JPanel(null);        
+        rightPanel = new JPanel(null);
         rightPanel.setPreferredSize(new Dimension(400, 500));
         rightPanel.setMaximumSize(new Dimension(400, 500));
         rightPanel.setBackground(Color.red);
@@ -356,6 +358,7 @@ public class TeacherView extends JPanel {
                     model = buildTableModel(performQuery("SELECT sections.ID, courses.CourseName FROM sections, courses where sections.teacher_id=" + Integer.parseInt((idField.getText())) + " and sections.course_id=courses.ID"));
                     tableCourses.setModel(model);
                     tableCourses.setBounds(180-60+60-30-130 ,200+20+70+70+40, 360, tableCourses.getRowCount()*17);
+                    tableCourses.setName("tableCourses");
                 }
                 catch(Exception e1){System.out.println(e1);}
             }
@@ -467,6 +470,14 @@ public class TeacherView extends JPanel {
                 idField.setText(Integer.toString(getNextIncrement()));
     
                 current = null;
+
+                for (Component c : rightPanel.getComponents()){
+                    if(c.getName() == "tableCourses"){
+                        rightPanel.remove(c);
+                        rightPanel.repaint();
+                        rightPanel.revalidate();
+                    }
+                }
             }
             };
        }

@@ -7,6 +7,7 @@ import java.awt.*;
 import java.awt.event.*;
 import java.util.ArrayList;
 import java.io.File;
+import java.util.Arrays;
 import java.util.List;
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -158,6 +159,7 @@ public class StudentView extends JPanel {
         return maxID;
     }
 
+    JPanel rightPanel;
     void Start(){
 
 
@@ -181,7 +183,7 @@ public class StudentView extends JPanel {
         centerPanel.setMaximumSize(new Dimension(450, 500));
         centerPanel.add(scrollPane, BorderLayout.WEST);
 
-        JPanel rightPanel = new JPanel(null);
+        rightPanel = new JPanel(null);
         rightPanel.setPreferredSize(new Dimension(400, 500));
         rightPanel.setMaximumSize(new Dimension(400, 500));
         rightPanel.setBackground(Color.green);
@@ -388,14 +390,18 @@ public class StudentView extends JPanel {
                 modelCourses = new DefaultTableModel();
                 modelCourses.setColumnIdentifiers(new String[]{"SectionId", "CourseName"});
                 if(idField.getText()!=null && idField.getText()!="") {
+                    System.out.println("SELECT section FROM students where students.ID=" + Integer.parseInt((idField.getText())));
                     ResultSet a = performQuery("SELECT section FROM students where students.ID=" + Integer.parseInt((idField.getText())));
+
                     try {
                         if (a != null && a.next() ) {
 
                             if (a.getString(1) != null) {
                                 String[] sections = a.getString(1).split(":");
+                                System.out.println(Arrays.toString(sections));
                                 for (int i = 0; i < sections.length; i++) {
                                     String query = "SELECT sections.ID as sectionID, courses.CourseName FROM sections, courses where sections.ID=" + sections[i] + " and courses.ID=sections.course_id";
+                                    System.out.println(query);
                                     ResultSet courses = performQuery(query);
                                     courses.next();
                                     modelCourses.addRow(new Object[]{courses.getString("sectionID"), courses.getString("CourseName")});
@@ -405,6 +411,7 @@ public class StudentView extends JPanel {
                             tableCourses.setAutoCreateRowSorter(true);
                             tableCourses.setModel(modelCourses);
                             tableCourses.setBounds(180-60+60-30-130 ,200+20+70+70+40, 360, tableCourses.getRowCount()*17);
+                            tableCourses.setName("tableCourses");
                         }
                     } catch (Exception ex) {
                         throw new RuntimeException(ex);
@@ -525,7 +532,16 @@ public class StudentView extends JPanel {
                 clear.setEnabled(true);
                 idField.setText(Integer.toString(getNextIncrement()));
 
-                current = null;
+
+                for (Component c : rightPanel.getComponents()){
+                    if(c.getName() == "tableCourses"){
+                        rightPanel.remove(c);
+                        rightPanel.repaint();
+                        rightPanel.revalidate();
+                    }
+                }
+
+                    current = null;
             }
         };
     }

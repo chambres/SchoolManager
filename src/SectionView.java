@@ -362,6 +362,7 @@ public class SectionView extends JPanel {
                 DefaultTableModel model = new DefaultTableModel();
                 model.addColumn("Students");
 
+                OrderByFourthLetter.orderByFourthLetter(selectedStudents);
                 // add the student names to the table model
                 for (String s : selectedStudents) {
                     model.addRow(new Object[]{s});
@@ -486,7 +487,7 @@ public class SectionView extends JPanel {
                 if (b.getString(4) == null || b.getString(4) == "")
                     section = idField.getText();
                 else
-                    section = b.getString("Section") + ":" + idField.getText();
+                    section = b.getString("Section") + idField.getText() + ":";
                 int updated = performUpdate("update students SET section='" + section + "' where id=" + currentStudent);
             }
         } catch (Exception e) {
