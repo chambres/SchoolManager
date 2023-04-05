@@ -4,7 +4,7 @@ import java.awt.*;
 
 
 public class AboutPage extends JPanel {
-    private JFrame frame = new JFrame("Test");
+    private JFrame frame = new JFrame("Help");
     private JPanel panel = new JPanel();
     private JLabel label = new JLabel("School Manager v1.0.0 -- Tompkins High School");
 
