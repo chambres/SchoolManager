@@ -1,22 +1,24 @@
 import javax.swing.*;
+import java.awt.*;
+
 
 
 public class AboutPage extends JPanel {
-        public AboutPage() {
+    private JFrame frame = new JFrame("Test");
+    private JPanel panel = new JPanel();
+    private JLabel label = new JLabel("School Manager v1.0.0 -- Tompkins High School");
 
-            JEditorPane editorPane = new JEditorPane();
-            editorPane.setContentType("text/plain");
-            editorPane.setText("School Manager Application - Tompkins HighSchool");
+    public AboutPage() {
+        panel.setLayout(new GridBagLayout());
+        panel.add(label);
+        panel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+        frame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
+        frame.add(panel);
+        frame.setSize(400, 300);
+        frame.setLocationRelativeTo(null);
+        frame.setVisible(true);
+    }
 
-            JFrame frame = new JFrame("About Page");
-            frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-
-            frame.setContentPane(editorPane);
-            frame.setVisible(true);
-            frame.setSize(300, 300);
-
-
-        }
 
 
 }
