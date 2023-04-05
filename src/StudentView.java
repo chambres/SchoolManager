@@ -399,12 +399,14 @@ public class StudentView extends JPanel {
                             if (a.getString(1) != null) {
                                 String[] sections = a.getString(1).split(":");
                                 System.out.println(Arrays.toString(sections));
-                                for (int i = 0; i < sections.length; i++) {
-                                    String query = "SELECT sections.ID as sectionID, courses.CourseName FROM sections, courses where sections.ID=" + sections[i] + " and courses.ID=sections.course_id";
-                                    System.out.println(query);
-                                    ResultSet courses = performQuery(query);
-                                    courses.next();
-                                    modelCourses.addRow(new Object[]{courses.getString("sectionID"), courses.getString("CourseName")});
+                                if(sections.length > 0) {
+                                    for (int i = 0; i < sections.length; i++) {
+                                        String query = "SELECT sections.ID as sectionID, courses.CourseName FROM sections, courses where sections.ID=" + sections[i] + " and courses.ID=sections.course_id";
+                                        System.out.println(query);
+                                        ResultSet courses = performQuery(query);
+                                        courses.next();
+                                        modelCourses.addRow(new Object[]{courses.getString("sectionID"), courses.getString("CourseName")});
+                                    }
                                 }
                             }
                             tableCourses.setBackground(Color.red);
@@ -494,6 +496,8 @@ public class StudentView extends JPanel {
                         current = tmp;
                         modelCourses = new DefaultTableModel();
                         modelCourses.setColumnIdentifiers(new String[]{"SectionId", "CourseName"});
+                        System.out.println("id: " + idField.getText());
+                        System.out.println("SELECT section FROM sections where students.ID=" + Integer.parseInt((idField.getText())));
                         ResultSet a = performQuery("SELECT section FROM sections where students.ID=" + Integer.parseInt((idField.getText())));
                         try {
                             a.next();

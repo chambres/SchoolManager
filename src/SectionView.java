@@ -282,7 +282,7 @@ public class SectionView extends JPanel {
         students.clear();
         studentSelection = new JComboBox<Item>();
         studentSelection.setBounds(180 - 60 + 60 - offset - 60, 200 + 20 + 70 + 70 + 80, 120, labelHeight);
-        studentSelection.setName("studentSelection");
+        studentSelection.setName("studentSelectionTable");
         try {
             while (student.next()) {
                 students.add(student.getString("FirstName") + " " + student.getString("LastName"));
@@ -318,6 +318,7 @@ public class SectionView extends JPanel {
 
         // create the table with the table model
         table = new JTable(model);
+        table.setName("studentSelectionTable");
         table.setBounds(180 - 60 + 60 - offset - offset * 3, 200 + 20 + 70 + 70 + 80 + 30, 320, 100);
 
         table.getSelectionModel().addListSelectionListener(new ListSelectionListener() {
@@ -354,7 +355,7 @@ public class SectionView extends JPanel {
         students.clear();
         studentSelection = new JComboBox<Item>();
         studentSelection.setBounds(180 - 60 + 60 - offset - 60, 200 + 20 + 70 + 70 + 80, 120, labelHeight);
-        studentSelection.setName("studentSelection");
+        studentSelection.setName("studentSelectionTable");
         try {
             while (student.next()) {
                 students.add(student.getString("FirstName") + " " + student.getString("LastName"));
@@ -364,14 +365,7 @@ public class SectionView extends JPanel {
         } catch (Exception e) {
             System.out.println(e);
         }
-        Component[] componentList = rightPanel.getComponents();
-        for (int i = 0; i < componentList.length; i++) {
-            //get name
-            String name = componentList[i].getName();
-            if (name == "studentSelection") {
-                rightPanel.remove(componentList[i]);
-            }
-        }
+
 
 
         rightPanel.add(studentSelection);
@@ -402,6 +396,7 @@ public class SectionView extends JPanel {
                 model1 = model;
                 table.setAutoCreateRowSorter(true);
                 table.setModel(model1);
+                table.setName("studentSelectionTable");
             }
         };
     }
@@ -670,6 +665,15 @@ public class SectionView extends JPanel {
                 clear.setEnabled(true);
     
                 current = null;
+
+                selectedStudents.clear();
+                DefaultTableModel modell = new DefaultTableModel();
+                modell.addColumn("Students");
+                // add the student names to the table model
+                for (String s : selectedStudents) {
+                    modell.addRow(new Object[]{s});
+                }
+                table.setModel(modell);
             }
         };
     }
@@ -696,9 +700,20 @@ public class SectionView extends JPanel {
                 //clear fields
                 fname.setText("");
                 lname.setText("");
+
+                selectedStudents.clear();
+                DefaultTableModel model = new DefaultTableModel();
+                model.addColumn("Students");
+                // add the student names to the table model
+                for (String s : selectedStudents) {
+                    model.addRow(new Object[]{s});
+                }
+                table.setModel(model);
     
             }
         };
+
+
     }
 
     ActionListener deleteButtonListener() {
