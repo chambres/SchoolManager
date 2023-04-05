@@ -19,10 +19,6 @@ public class CourseView extends JPanel {
     Connection con;
 
 
-    
-    
-
-
     JTextField CourseNameField = new JTextField();
     JTextField TypeField = new JTextField();
     JTextField idField = new JTextField();
@@ -38,7 +34,30 @@ public class CourseView extends JPanel {
             System.out.println("Button clicked");
             ContactButton tmp = (ContactButton) e.getSource();
             CourseNameField.setText(tmp.fname);
-            TypeField.setText(tmp.lname);
+            if(tmp.lname.equalsIgnoreCase("Academic")) {
+                Academic.setSelected(true);
+                KAP.setSelected(false);
+                AP.setSelected(false);
+            }
+            else if (tmp.lname.equalsIgnoreCase("KAP")) {
+                KAP.setSelected(true);
+                Academic.setSelected(false);
+                AP.setSelected(false);
+            }
+            else {
+                AP.setSelected(true);
+                KAP.setSelected(false);
+                Academic.setSelected(false);
+            }
+
+            ResultSet b = performQuery("SELECT id FROM courses WHERE CourseName = + '" + tmp.fname + "' AND Type = '" + RadioButtonStringToInt(tmp.lname)  + "';");
+            try{
+                while(b.next()){
+                    idField.setText(b.getString("ID"));
+                }
+            }
+            catch(Exception e1){System.out.println(e1);}
+
             
             saveChanges.setEnabled(true);
             deleteContact.setEnabled(true);
@@ -92,7 +111,23 @@ public class CourseView extends JPanel {
                 List<String> lines = Files.readAllLines(Paths.get("contacts.txt"), java.nio.charset.StandardCharsets.UTF_8);
                 for(String line: lines) {
                     String[] parts = line.split(",");
-                    ContactButton button = new ContactButton(parts[0], parts[1]);
+                    String courseName="";
+                    if(parts[0].equalsIgnoreCase("Academic")) {
+                        Academic.setSelected(true);
+                        KAP.setSelected(false);
+                        AP.setSelected(false);
+                    }
+                    else if (parts[0].equalsIgnoreCase("KAP")) {
+                        KAP.setSelected(true);
+                        Academic.setSelected(false);
+                        AP.setSelected(false);
+                    }
+                    else {
+                        AP.setSelected(true);
+                        KAP.setSelected(false);
+                        Academic.setSelected(false);
+                    }
+                    ContactButton button = new ContactButton(courseName,getStringFromRadioButtons() );
                     button.addActionListener(b);
                     contactList.add(button);
 
@@ -120,11 +155,15 @@ public class CourseView extends JPanel {
         return maxID;
     }
 
+
+    //radio button for type
+    JRadioButton Academic =new JRadioButton("Academic");
+    JRadioButton AP =new JRadioButton("AP");
+    JRadioButton KAP =new JRadioButton("KAP");
+
+    JRadioButton[] types = {Academic, KAP, AP}; // store the labels in an array
+    
     void Start(){
-
-
-
-        
 
         JPanel panel = new JPanel(new BorderLayout());
         panel.add(buttonPanel, BorderLayout.PAGE_START);
@@ -169,12 +208,48 @@ public class CourseView extends JPanel {
         labelY = 30;
         idField.setEditable(false);
         idField.setText(Integer.toString(getNextIncrement()));
-        JTextField[] fields = {CourseNameField, TypeField, idField}; // store the text fields in an array
-        for(JTextField field : fields) { // loop through the text fields
-            field.setBounds(labelX+100, labelY, 220, labelHeight); // hardcode the position and size of the text field
-            labelY += labelHeight + labelGap; // update the Y position for the next text field
-            rightPanel.add(field);
+       
+
+        CourseNameField.setBounds(labelX+100, labelY, 220, labelHeight); // hardcode the position and size of the text field
+        labelY += labelHeight + labelGap; // update the Y position for the next text field
+        rightPanel.add(CourseNameField);
+
+        
+
+        //radio button for type
+
+        Academic.setBounds(labelX+100, labelY, 100, labelHeight);
+        rightPanel.add(Academic);
+
+        AP.setBounds(labelX+100+96, labelY,50, labelHeight);
+        rightPanel.add(AP);
+
+        KAP.setBounds(labelX+100+96+50, labelY, 100, labelHeight);
+        rightPanel.add(KAP);
+        labelY += labelHeight + labelGap; // update the Y position for the next text field
+
+        idField.setBounds(labelX+100, labelY, 220, labelHeight); // hardcode the position and size of the text field
+        labelY += labelHeight + labelGap; // update the Y position for the next text field
+        rightPanel.add(idField);
+
+        
+        for(JRadioButton typess : types) { // loop through the labels
+            typess.addActionListener(new ActionListener() {
+                @Override
+                public void actionPerformed(ActionEvent e) {
+                    for(JRadioButton typea : types) {
+
+                        JRadioButton tmp = (JRadioButton)e.getSource();
+                        if(typea != tmp)
+                            typea.setSelected(false);
+                        System.out.println(typea.getText() + " " + tmp.getText());
+
+                        
+                    }
+                }
+            });
         }
+
         int offset = 30;
         int yOff = 20;
         saveChanges = new JButton("Save");
@@ -250,7 +325,9 @@ public class CourseView extends JPanel {
             @Override
             public void actionPerformed(ActionEvent e) {
                 CourseNameField.setText("");
-                TypeField.setText("");
+                for(JRadioButton button : types ){
+                    button.setSelected(false);
+                }
             }
         };
         return a;
@@ -274,18 +351,27 @@ public class CourseView extends JPanel {
         return -1;
     }
 
-
+    String getStringFromRadioButtons(){
+        for(JRadioButton a : types){
+            if(a.isSelected()){
+                return a.getText();
+            }
+        }
+        return "";
+    }
 
     public void addButton(){
         String fname = CourseNameField.getText();
-        String lname = TypeField.getText();
+        String lname =getStringFromRadioButtons();
+
+        // String.valueOf(TypeToInt(getStringFromRadioButtons()));
 
 
         try{
             
             performUpdate(String.format(
                 "insert into courses(CourseName, Type)" +
-                " values ('%s', %s);" , fname, lname));
+                " values ('%s', %s);" , fname, TypeToInt(lname)));
             
             ResultSet b = performQuery("select * from courses");
             while(b.next()){
@@ -302,14 +388,29 @@ public class CourseView extends JPanel {
                 System.out.println("Button clicked");
                 ContactButton tmp = (ContactButton) e.getSource();
                 CourseNameField.setText(tmp.fname);
-                TypeField.setText(tmp.lname);
+                if(tmp.lname.equalsIgnoreCase("Academic")) {
+                    Academic.setSelected(true);
+                    KAP.setSelected(false);
+                    AP.setSelected(false);
+                }
+                else if (tmp.lname.equalsIgnoreCase("KAP")) {
+                    KAP.setSelected(true);
+                    Academic.setSelected(false);
+                    AP.setSelected(false);
+                }
+                else {
+                    AP.setSelected(true);
+                    KAP.setSelected(false);
+                    Academic.setSelected(false);
+                }
+//                TypeField.setText(tmp.lname);
                 
                 saveChanges.setEnabled(true);
                 deleteContact.setEnabled(true);
                 submit.setEnabled(false);
                 clear.setEnabled(false);
 
-                ResultSet b = performQuery("SELECT id FROM courses WHERE CourseName = + '" + fname + "' AND Type = '" + lname + "';");
+                ResultSet b = performQuery("SELECT id FROM courses WHERE CourseName = + '" + tmp.fname + "' AND Type = '" + RadioButtonStringToInt(lname) + "';");
                 try{
                     while(b.next()){
                         idField.setText(b.getString("ID"));
@@ -326,14 +427,11 @@ public class CourseView extends JPanel {
     }
 
     public void addButton(String fname, String lname){
-
-
-
         try{
 
             performUpdate(String.format(
                     "insert into courses(CourseName, Type)" +
-                            " values ('%s', %s);" , fname, lname));
+                            " values ('%s', %s);" , fname, TypeToInt(lname)));
 
             ResultSet b = performQuery("select * from courses");
             while(b.next()){
@@ -350,14 +448,28 @@ public class CourseView extends JPanel {
                 System.out.println("Button clicked");
                 ContactButton tmp = (ContactButton) e.getSource();
                 CourseNameField.setText(tmp.fname);
-                TypeField.setText(tmp.lname);
+                if(tmp.lname.equalsIgnoreCase("Academic")) {
+                    Academic.setSelected(true);
+                    KAP.setSelected(false);
+                    AP.setSelected(false);
+                }
+                else if (tmp.lname.equalsIgnoreCase("KAP")) {
+                    KAP.setSelected(true);
+                    Academic.setSelected(false);
+                    AP.setSelected(false);
+                }
+                else {
+                    AP.setSelected(true);
+                    KAP.setSelected(false);
+                    Academic.setSelected(false);
+                }
 
                 saveChanges.setEnabled(true);
                 deleteContact.setEnabled(true);
                 submit.setEnabled(false);
                 clear.setEnabled(false);
 
-                ResultSet b = performQuery("SELECT id FROM courses WHERE CourseName = + '" + fname + "' AND Type = " + lname + ";");
+                ResultSet b = performQuery("SELECT id FROM courses WHERE CourseName = + '" + tmp.fname + "' AND Type = " + RadioButtonStringToInt(lname)  + ";");
                 try{
                     while(b.next()){
                         idField.setText(b.getString("ID"));
@@ -375,10 +487,6 @@ public class CourseView extends JPanel {
 
     void reloadButtons() {
 
-        //SortContactButtons.sortContactButtonsByType(contactList);
-        //contactList = 
-
-
         buttonPanel.removeAll(); // remove all existing buttons from the panel
         
         for (ContactButton button : contactList) {
@@ -388,13 +496,25 @@ public class CourseView extends JPanel {
             JPanel row = new JPanel();
             row.setLayout(new BoxLayout(row, BoxLayout.X_AXIS));
             row.add(button);
-            // row.add(label);
-            // row.add(txtFld);
+
             buttonPanel.add(row);
             scrollPane.revalidate();
         }
         // tell the panel to update its layout
         setVisible(true);
+    }
+
+    int TypeToInt(String type){
+        switch(type){
+            case "Academic":
+                return 0;
+            case "KAP":
+                return 1;
+            case "AP":
+                return 2;
+            default:
+                return 0;
+        }
     }
     
     
@@ -408,7 +528,7 @@ public class CourseView extends JPanel {
             public void actionPerformed(ActionEvent e) {
     
                 String CourseName = fname.getText();
-                String Type = lname.getText();
+                String Type = String.valueOf(TypeToInt(getStringFromRadioButtons()));
                 if(CourseName == null || CourseName.equals("") || Type == null || Type.equals("")){
                     //show dialog box
                     JOptionPane.showMessageDialog(null, "Please enter a course name and type");
@@ -425,15 +545,37 @@ public class CourseView extends JPanel {
                 fname.setText("");
                 lname.setText("");
                 idField.setText(Integer.toString(getNextIncrement()));
+
     
-                ContactButton tmp = new ContactButton(CourseName, Type);
+                ContactButton tmp = new ContactButton(CourseName,types[Integer.parseInt(Type)].getText() );
                 ActionListener b = new ActionListener() {
                     @Override
                     public void actionPerformed(ActionEvent e) {
                         System.out.println("Button clicked");
                         ContactButton tmp = (ContactButton) e.getSource();
                         CourseNameField.setText(tmp.fname);
-                        TypeField.setText(tmp.lname);
+                        if(tmp.lname.equalsIgnoreCase("Academic")) {
+                            Academic.setSelected(true);
+                            KAP.setSelected(false);
+                            AP.setSelected(false);
+                        }
+                        else if (tmp.lname.equalsIgnoreCase("KAP")) {
+                            KAP.setSelected(true);
+                            Academic.setSelected(false);
+                            AP.setSelected(false);
+                        }
+                        else {
+                            AP.setSelected(true);
+                            KAP.setSelected(false);
+                            Academic.setSelected(false);
+                        }
+                        ResultSet b = performQuery("SELECT id FROM courses WHERE CourseName = + '" + tmp.fname + "' AND Type = '" + RadioButtonStringToInt(tmp.lname)  + "';");
+                        try{
+                            while(b.next()){
+                                idField.setText(b.getString("ID"));
+                            }
+                        }
+                        catch(Exception e1){System.out.println(e1);}
                         
                         saveChanges.setEnabled(true);
                         deleteContact.setEnabled(true);
@@ -457,6 +599,32 @@ public class CourseView extends JPanel {
             }
             };
        }
+
+       int RadioButtonToInt(JRadioButton a){
+            switch(a.getText()){
+                case "Academic":
+                    return 0;
+                case "KAP":
+                    return 1;
+                case "AP":
+                    return 2;
+                default:
+                    return 0;
+            }
+       }
+
+    int RadioButtonStringToInt(String a){
+        switch(a){
+            case "Academic":
+                return 0;
+            case "KAP":
+                return 1;
+            case "AP":
+                return 2;
+            default:
+                return 0;
+        }
+    }
     
        ActionListener submitButtonListener(){
         JTextField fname = CourseNameField;
@@ -465,10 +633,20 @@ public class CourseView extends JPanel {
         return new ActionListener() {
             public void actionPerformed(ActionEvent e) {
                 String CourseName = fname.getText();
-                String Type = lname.getText();
-                if(CourseName == null || CourseName.equals("") || Type == null || Type.equals("")){
+                String type ="";
+                for(JRadioButton button : types){
+                    if(button.isSelected()){
+                        type = String.valueOf(RadioButtonToInt(button));
+                    }
+                }
+                if(AP.isSelected() == false && KAP.isSelected() == false && Academic.isSelected() == false) {
+                    Academic.setSelected(true);
+                    AP.setSelected(false);
+                    KAP.setSelected(false);
+                }
+                if(CourseName == null || CourseName.equals("")){
                     //show dialog box
-                    JOptionPane.showMessageDialog(null, "Please enter a course Name and type");
+                    JOptionPane.showMessageDialog(null, "Please enter a course Name");
                     return;
                 }
 
@@ -478,6 +656,10 @@ public class CourseView extends JPanel {
                 //clear fields
                 fname.setText("");
                 lname.setText("");
+
+                for(JRadioButton button : types ){
+                    button.setSelected(false);
+                }
     
             }
             };
@@ -505,6 +687,7 @@ public class CourseView extends JPanel {
 
 
                 //delete from courses with ID selected
+                System.out.println("delete from courses where id =" + idField.getText() );
                 int updated = performUpdate(String.format("delete from courses where id = %s", idField.getText() )); //delete course with course id
 
                 //select all corresponding sections of the course
@@ -526,6 +709,8 @@ public class CourseView extends JPanel {
                     while (students.next()) {
                          //Find the list of sections for student
                         section = students.getString("Section");
+                        if((section == null)||(section==""))
+                            break;
                         String[] sectionsStudent = section.split(":");
 
                         //Remove section if section is in sectionsRemoved

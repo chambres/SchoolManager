@@ -61,7 +61,8 @@ public class TabbedPaneDemo extends JPanel {
             @Override
             public void stateChanged(ChangeEvent e) {
                 int index = tabbedPane.getSelectedIndex();
-                //Added to find current tab - akshi
+
+                //Added to find current tab
                 selectedtab = index;
                 System.out.println("Tab " + (index+1) + " opened.");
                 if(selectedtab==3) {
@@ -358,6 +359,14 @@ public class TabbedPaneDemo extends JPanel {
 
                 //update form
                 courseView.CourseNameField.setText(values[1].toString());
+
+                if(values[2].toString().equalsIgnoreCase("0"))
+                    courseView.Academic.setSelected(true);
+                else if (values[2].toString().equalsIgnoreCase("1"))
+                    courseView.KAP.setSelected(true);
+                else
+                    courseView.AP.setSelected(true);
+
                 courseView.TypeField.setText(values[2].toString());
                 courseView.idField.setText(values[0].toString());
 
@@ -387,7 +396,9 @@ public class TabbedPaneDemo extends JPanel {
                 sectionView.courseSelection.setSelectedItem(Integer.parseInt(values[1]));
                 sectionView.teacherSelection.setSelectedItem(Integer.parseInt(values[2]));
                 sectionView.idField.setText(values[0].toString());
-
+                System.out.println("Student: "+ sectionView.courseSelection.getItemAt(Integer.parseInt(values[1])) + " Teacher: "+ sectionView.teacherSelection.getItemAt(Integer.parseInt(values[1])));
+                sectionView.CourseNameField.setText(sectionView.courseSelection.getItemAt(Integer.parseInt(values[1])-1).toString());
+                sectionView.TeacherField.setText(sectionView.teacherSelection.getItemAt(Integer.parseInt(values[2])-1).toString());
                 sectionView.submit.doClick();
 
 

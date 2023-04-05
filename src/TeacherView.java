@@ -532,7 +532,7 @@ public class TeacherView extends JPanel {
                 buttonPanel.remove(current);
                 reloadButtons();
 
-                //akshi - delete from database teacher
+                //delete from database teacher
                 //search for teacher in sections table and set teacher = -1
                 int rs = performUpdate(String.format("delete from teachers where id = %s", idField.getText() ));
                 rs = performUpdate(String.format("update sections set teacher_id=-1 where teacher_id = %s", idField.getText() ));
