@@ -34,49 +34,7 @@ public class SectionView extends JPanel {
     JButton deleteContact;
     int selectedStudent;
 
-    ActionListener b = new ActionListener() {
-        @Override
-        public void actionPerformed(ActionEvent e) {
-            System.out.println("Contact Button clicked");
-            ContactButton tmp = (ContactButton) e.getSource();
-            CourseNameField.setText(tmp.fname);
-            TeacherField.setText(tmp.lname);
-            idField.setText(tmp.id);
-
-            saveChanges.setEnabled(true);
-            deleteContact.setEnabled(true);
-            submit.setEnabled(false);
-            clear.setEnabled(false);
-
-            current = tmp;
-
-            ResultSet b = performQuery("SELECT * FROM students");
-            String section;
-            DefaultTableModel model = new DefaultTableModel();
-            model.addColumn("Students");
-            selectedStudents.clear();
-            try{
-                while(b.next()){
-                    section = b.getString("section");
-                    if((section!=null)&&(section!="")) {
-                        if (Arrays.asList(section.split(":")).contains(idField.getText())) {
-                            selectedStudents.add(b.getString("LastName") + " " + b.getString("FirstName") + " " + b.getString("ID"));
-                            model.addRow(new Object[]{b.getString("LastName") + " " + b.getString("FirstName") + " " + b.getString("ID")});
-
-                        }
-                    }
-
-                }
-            } catch (SQLException ex) {
-                throw new RuntimeException(ex);
-            }
-            table.setModel(model);
-            table.setAutoCreateRowSorter(true);
-
-        }
-
-
-    };
+   
 
 
     static ArrayList<ContactButton> contactList = new ArrayList<ContactButton>();
@@ -282,7 +240,7 @@ public class SectionView extends JPanel {
         students.clear();
         studentSelection = new JComboBox<Item>();
         studentSelection.setBounds(180 - 60 + 60 - offset - 60, 200 + 20 + 70 + 70 + 80, 120, labelHeight);
-        studentSelection.setName("studentSelectionTable");
+        studentSelection.setName("studentSelectionComboBox");
         try {
             while (student.next()) {
                 students.add(student.getString("FirstName") + " " + student.getString("LastName"));
@@ -351,11 +309,20 @@ public class SectionView extends JPanel {
     JTable table;
 
     void resetStudentDropdown() {
+        //iterate through all components of right panel
+        for (Component c : rightPanel.getComponents()){
+            if(c.getName() == "studentSelectionComboBox"){
+                rightPanel.remove(c);
+                rightPanel.repaint();
+                rightPanel.revalidate();
+            }
+        }
+
         ResultSet student = performQuery("Select * from students");
         students.clear();
         studentSelection = new JComboBox<Item>();
         studentSelection.setBounds(180 - 60 + 60 - offset - 60, 200 + 20 + 70 + 70 + 80, 120, labelHeight);
-        studentSelection.setName("studentSelectionTable");
+        studentSelection.setName("studentSelectionComboBox");
         try {
             while (student.next()) {
                 students.add(student.getString("FirstName") + " " + student.getString("LastName"));
@@ -506,7 +473,7 @@ public class SectionView extends JPanel {
                 System.out.println("IDField" + idField.getText());
                 String section = "";
                 if (b.getString(4) == null || b.getString(4) == "")
-                    section = idField.getText();
+                    section = idField.getText() + ":";
                 else
                     section = b.getString("Section") + idField.getText() + ":";
                 int updated = performUpdate("update students SET section='" + section + "' where id=" + currentStudent);
@@ -517,49 +484,7 @@ public class SectionView extends JPanel {
 
         ContactButton button = new ContactButton(courseItem.getDescription(), teacherItem.getDescription(), idField.getText().toString());
 
-        ActionListener b = new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                System.out.println("Button selection clicked");
-                ContactButton tmp = (ContactButton) e.getSource();
-                CourseNameField.setText(tmp.fname);
-                idField.setText(tmp.id);
-                if (tmp.lname.equals(""))
-                    TeacherField.setText("None");
-                else
-                    TeacherField.setText(tmp.lname);
-
-                idField.setText(String.valueOf(tmp.id));
-                saveChanges.setEnabled(true);
-                deleteContact.setEnabled(true);
-                submit.setEnabled(false);
-                clear.setEnabled(false);
-                //Find the list of students for that section and add it to model
-                ResultSet b = performQuery("SELECT * FROM students");
-                String section;
-                DefaultTableModel model = new DefaultTableModel();
-                model.addColumn("Students");
-                selectedStudents.clear();
-                try{
-                    while(b.next()){
-                        section = b.getString("section");
-                        if((section!=null)&&(section!="")) {
-                            if (Arrays.asList(section.split(":")).contains(idField.getText())) {
-                                selectedStudents.add(b.getString("LastName") + " " + b.getString("FirstName") + " " + b.getString("ID"));
-                                model.addRow(new Object[]{b.getString("LastName") + " " + b.getString("FirstName") + " " + b.getString("ID")});
-
-                            }
-                        }
-
-                    }
-                } catch (SQLException ex) {
-                    throw new RuntimeException(ex);
-                }
-                table.setModel(model);
-                table.setAutoCreateRowSorter(true);
-                current = tmp;
-            }
-        };
+        
         button.addActionListener(b);
         contactList.add(button);
         reloadButtons();
@@ -583,6 +508,47 @@ public class SectionView extends JPanel {
         setVisible(true);
     }
 
+    ActionListener b = new ActionListener() {
+        @Override
+        public void actionPerformed(ActionEvent e) {
+            System.out.println("Button selection clicked");
+            ContactButton tmp = (ContactButton) e.getSource();
+            current = tmp;
+            courseSelection.setSelectedItem(tmp.fname);
+            idField.setText(tmp.id);
+            teacherSelection.setSelectedItem(tmp.lname);
+
+            idField.setText(String.valueOf(tmp.id));
+            saveChanges.setEnabled(true);
+            deleteContact.setEnabled(true);
+            submit.setEnabled(false);
+            clear.setEnabled(false);
+            //Find the list of students for that section and add it to model
+            ResultSet b = performQuery("SELECT * FROM students");
+            String section;
+            DefaultTableModel model = new DefaultTableModel();
+            model.addColumn("Students");
+            selectedStudents.clear();
+            try{
+                while(b.next()){
+                    section = b.getString("section");
+                    if((section!=null)&&(section!="")) {
+                        if (Arrays.asList(section.split(":")).contains(idField.getText())) {
+                            selectedStudents.add(b.getString("LastName") + " " + b.getString("FirstName") + " " + b.getString("ID"));
+                            model.addRow(new Object[]{b.getString("LastName") + " " + b.getString("FirstName") + " " + b.getString("ID")});
+                        }
+                    }
+
+                }
+            } catch (SQLException ex) {
+                throw new RuntimeException(ex);
+            }
+            table.setModel(model);
+            table.setAutoCreateRowSorter(true);
+            
+        }
+    };
+
 
     ActionListener saveButtonListener() {
         JTextField fname = CourseNameField;
@@ -596,68 +562,55 @@ public class SectionView extends JPanel {
                 Item teacherItem = (Item) teacherSelection.getSelectedItem();
                 String Type = teacherItem.getDescription();
 
-
                 if (CourseName == null || CourseName.equals("") || Type == null || Type.equals("")) {
                     //show dialog box
                     JOptionPane.showMessageDialog(null, "Please choose course and teacher");
                     return;
                 }
-
+                System.out.println(contactList.toString());
                 int indexInArrayList = contactList.indexOf(current);
                 if (indexInArrayList == -1) {
                     System.out.println(CourseName + " " + Type + " not found");
                 }
                 ; //not found (shouldn't happen
 
-                int updated = performUpdate(String.format("update sections SET course_id=%s, teacher_id=%s where id=%s", courseItem.getId(), teacherItem.getId(), idField.getText()));
+
+                performUpdate(String.format("update sections SET course_id=%s, teacher_id=%s where id=%s", courseItem.getId(), teacherItem.getId(), idField.getText()));
 
                 ContactButton tmp = new ContactButton(CourseName, Type, idField.getText().trim().toString());
+                
                 tmp.addActionListener(b);
-                ActionListener b = new ActionListener() {
-                    @Override
-                    public void actionPerformed(ActionEvent e) {
-                        System.out.println("Button clicked");
-                        ContactButton tmp = (ContactButton) e.getSource();
-                        CourseNameField.setText(tmp.fname);
-                        TeacherField.setText(tmp.lname);
-                        idField.setText(tmp.id);
-                        
-                        saveChanges.setEnabled(true);
-                        deleteContact.setEnabled(true);
-                        submit.setEnabled(false);
-                        clear.setEnabled(false);
-        
-                        current = tmp;
-                    }
-                };
-                tmp.addActionListener(b);
-                contactList.set(indexInArrayList, tmp);
+                contactList.remove(current);
+                //contactList.set(indexInArrayList, tmp);
+                contactList.add(tmp);
                 reloadButtons();
 
-                //Find the list of students for that section and add it to model
-                ResultSet st = performQuery("SELECT * FROM students");
-                String section;
-                DefaultTableModel model = new DefaultTableModel();
-                model.addColumn("Students");
-                selectedStudents.clear();
-                try{
-                    while(st.next()){
-                        section = st.getString("section");
-                        if((section!=null)&&(section!="")) {
-                            if (Arrays.asList(section.split(":")).contains(idField.getText())) {
-                                selectedStudents.add(st.getString("LastName") + " " + st.getString("FirstName") + " " + st.getString("ID"));
-                                model.addRow(new Object[]{st.getString("LastName") + " " + st.getString("FirstName") + " " + st.getString("ID")});
-
-                            }
-                        }
-
+                
+                try {
+                    //browse through all students and modify student section in student table.
+                    //If section is not there for that student add. If already there don't add
+                    Iterator it = selectedStudents.iterator();
+        
+                    // Holds true till there is single element
+                    // remaining in the list
+                    for (String stud : selectedStudents) {
+                        String currentStudent = stud.split(" ")[2];
+                        ResultSet b = performQuery("select * from students where id=" + currentStudent);
+                        b.next();
+                        System.out.println("Section" + b.getString("Section"));
+                        System.out.println("IDField" + idField.getText());
+                        String section = "";
+                        if (b.getString(4) == null || b.getString(4) == "")
+                            section = idField.getText() + ":";
+                        else
+                            section = b.getString("Section") + idField.getText() + ":";
+                        int updated = performUpdate("update students SET section='" + section + "' where id=" + currentStudent);
                     }
-                } catch (SQLException ex) {
-                    throw new RuntimeException(ex);
+                } catch (Exception eee) {
+                    System.out.println(eee);
                 }
-                table.setModel(model);
-                table.setAutoCreateRowSorter(true);
-    
+        
+                
                 //turn off
                 saveChanges.setEnabled(false);
                 deleteContact.setEnabled(false);
@@ -697,9 +650,6 @@ public class SectionView extends JPanel {
 
                 addButton();
                 idField.setText(Integer.toString(getNextIncrement()));
-                //clear fields
-                fname.setText("");
-                lname.setText("");
 
                 selectedStudents.clear();
                 DefaultTableModel model = new DefaultTableModel();
