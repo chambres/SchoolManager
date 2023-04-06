@@ -581,7 +581,6 @@ public class SectionView extends JPanel {
                 
                 tmp.addActionListener(b);
                 contactList.remove(current);
-                //contactList.set(indexInArrayList, tmp);
                 contactList.add(tmp);
                 reloadButtons();
 
@@ -589,7 +588,6 @@ public class SectionView extends JPanel {
                 try {
                     //browse through all students and modify student section in student table.
                     //If section is not there for that student add. If already there don't add
-                    Iterator it = selectedStudents.iterator();
         
                     // Holds true till there is single element
                     // remaining in the list
@@ -600,6 +598,10 @@ public class SectionView extends JPanel {
                         System.out.println("Section" + b.getString("Section"));
                         System.out.println("IDField" + idField.getText());
                         String section = "";
+
+                        if((b.getString("Section") + ":").contains(idField.getText() + ":")){
+                            continue;
+                        }
                         if (b.getString(4) == null || b.getString(4) == "")
                             section = idField.getText() + ":";
                         else
@@ -642,9 +644,9 @@ public class SectionView extends JPanel {
                 Item teacherItem = ((Item) teacherSelection.getSelectedItem());
                 String Teacher = String.valueOf(teacherItem.getId()); //teacherSelection TeacherField.getText();
 
-                if (CourseName == null || CourseName.equals("") || Teacher == null || Teacher.equals("")) {
+                if (CourseName == null || CourseName.equals("") || Teacher == null || Teacher.equals("")  || selectedStudents.size() == 0) {
                     //show dialog box
-                    JOptionPane.showMessageDialog(null, "Please choose teacher and course");
+                    JOptionPane.showMessageDialog(null, "Please choose teacher and course, and make sure students are added.");
                     return;
                 }
 
