@@ -213,6 +213,7 @@ public class TabbedPaneDemo extends JPanel {
                 result = performQuery("Truncate table teachers");
                 result = performQuery("Truncate table courses");
                 result = performQuery("Truncate table sections");
+                System.exit(0);
 
 
             }

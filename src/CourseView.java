@@ -95,10 +95,8 @@ public class CourseView extends JPanel {
         ");"
         );
 
-        
 
-        performUpdate("DELETE FROM courses;");
-        performUpdate("ALTER TABLE courses AUTO_INCREMENT = 1;");
+
         System.out.println(rs);
     
         
@@ -660,6 +658,7 @@ public class CourseView extends JPanel {
                 for(JRadioButton button : types ){
                     button.setSelected(false);
                 }
+                Academic.setSelected(true);
     
             }
             };

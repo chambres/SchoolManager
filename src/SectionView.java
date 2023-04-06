@@ -64,8 +64,7 @@ public class SectionView extends JPanel {
                         ");"
         );
 
-        performUpdate("DELETE FROM sections;");
-        performUpdate("ALTER TABLE sections AUTO_INCREMENT = 1;");
+
         System.out.println(rs);
         
         File f = new File("contacts.txt");

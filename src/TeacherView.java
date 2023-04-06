@@ -100,10 +100,8 @@ public class TeacherView extends JPanel {
         catch(Exception e){ System.out.println(e);}
 
         int rs = performUpdate("create table teachers (ID int auto_increment primary key,\nFirstName varchar(500) NOT null,\nLastName varchar(500) NOT null\n);");
-        
 
-        performUpdate("DELETE FROM teachers;");
-        performUpdate("ALTER TABLE teachers AUTO_INCREMENT = 1;");
+
         System.out.println(rs);
     
         

@@ -117,8 +117,8 @@ public class StudentView extends JPanel {
         int rs = performUpdate("create table students (ID int auto_increment primary key,\nFirstName varchar(500) NOT null,\nLastName varchar(500) NOT null,\nSection varchar(500)\n);");
 
 
-        performUpdate("DELETE FROM students;");
-        performUpdate("ALTER TABLE students AUTO_INCREMENT = 1;");
+
+
         System.out.println(rs);
 
 
