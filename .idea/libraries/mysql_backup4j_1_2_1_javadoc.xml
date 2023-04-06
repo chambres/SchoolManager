@@ -1,8 +1,6 @@
 <component name="libraryTable">
   <library name="mysql-backup4j-1.2.1-javadoc">
-    <CLASSES>
-      <root url="jar://$PROJECT_DIR$/mysql-backup4j-1.2.1-javadoc.jar!/" />
-    </CLASSES>
+    <CLASSES />
     <JAVADOC />
     <SOURCES />
   </library>

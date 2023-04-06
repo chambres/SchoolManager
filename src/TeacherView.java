@@ -95,7 +95,7 @@ public class TeacherView extends JPanel {
 
         try{
         Class.forName("com.mysql.jdbc.Driver");
-        con= DriverManager.getConnection("jdbc:mysql://localhost:3306/p2","root","password");
+            con= DriverManager.getConnection("jdbc:mysql://localhost:3306/p2?characterEncoding=utf8","root","password");
         }
         catch(Exception e){ System.out.println(e);}
 

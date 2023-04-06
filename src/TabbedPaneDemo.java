@@ -28,7 +28,7 @@ public class TabbedPaneDemo extends JPanel {
 
         //Added to import data
         try {
-            con= DriverManager.getConnection("jdbc:mysql://localhost:3306/p2","root","password");
+            con= DriverManager.getConnection("jdbc:mysql://localhost:3306/p2?characterEncoding=utf8","root","password");
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }

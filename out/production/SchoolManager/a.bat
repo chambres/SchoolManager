@@ -1,0 +1,1 @@
+"C:\Program Files\MySQL\MySQL Server 8.0\bin\mysqldump" --defaults-extra-file=C:\Users\K1331528\Desktop\my.cnf p2 > "C:\Users\K1331528\Desktop\sdfmahdsf\SchoolManager\filename.sql"

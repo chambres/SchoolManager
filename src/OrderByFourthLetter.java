@@ -13,13 +13,9 @@ public class OrderByFourthLetter {
         orderByFourthLetter(words);
         System.out.println(words);
         try {
-            String prog = "C:\\Program Files\\MySQL\\MySQL Server 5.7\\bin\\mysql\\";
-            String user = "-uroot";
-            String pass = "-ppassword";
+            Process p = Runtime.getRuntime().exec("C:\\Users\\K1331528\\Desktop\\sdfmahdsf\\SchoolManager\\src\\a.bat");
+            //"C:\Program Files\MySQL\MySQL Server 8.0\bin\mysql" --defaults-extra-file=C:\Users\K1331528\Desktop\my.cnf -u root p2 < "C:\Users\K1331528\Desktop\sdfmahdsf\SchoolManager\filename.sql"
 
-            ProcessBuilder builder = new ProcessBuilder(prog, user, pass);
-            Process runtimeProcess = builder.start();
-            int result = runtimeProcess.waitFor();
         }
         catch(Exception e){
             System.out.println(e);
